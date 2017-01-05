@@ -1,7 +1,7 @@
 [PreviousGenFiles]
-HeaderPath=D:/workspace/stm32_workspace/stm32_tft/Cube/stm32_tft/Inc
+HeaderPath=D:/workspace/stm32_workspace/stm32_tft/Inc
 HeaderFiles=stm32f1xx_it.h;stm32f1xx_hal_conf.h;main.h;
-SourcePath=D:/workspace/stm32_workspace/stm32_tft/Cube/stm32_tft/Src
+SourcePath=D:/workspace/stm32_workspace/stm32_tft/Src
 SourceFiles=stm32f1xx_it.h;stm32f1xx_hal_conf.h;main.h;stm32f1xx_it.c;stm32f1xx_hal_msp.c;main.c;
 
 [PreviousLibFiles]

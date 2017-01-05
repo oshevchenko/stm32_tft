@@ -41,14 +41,6 @@
 
 /* Private define ------------------------------------------------------------*/
 
-#define GPIO_LED1_Pin GPIO_PIN_5
-#define GPIO_LED1_GPIO_Port GPIOE
-#define GPIO_LED2_Pin GPIO_PIN_6
-#define GPIO_LED2_GPIO_Port GPIOE
-#define GPIO_BTN_S2_Pin GPIO_PIN_0
-#define GPIO_BTN_S2_GPIO_Port GPIOC
-#define GPIO_BTN_S3_Pin GPIO_PIN_1
-#define GPIO_BTN_S3_GPIO_Port GPIOC
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
