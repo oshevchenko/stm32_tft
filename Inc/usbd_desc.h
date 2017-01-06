@@ -1,7 +1,8 @@
 /**
   ******************************************************************************
-  * File Name          : main.h
-  * Description        : This file contains the common defines of the application
+  * @file           : usbd_desc.h
+  * @version        : v1.0_Cube
+  * @brief          : Header for usbd_desc file.
   ******************************************************************************
   *
   * Copyright (c) 2017 STMicroelectronics International N.V. 
@@ -39,37 +40,75 @@
   * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   *
   ******************************************************************************
-  */
+*/
+
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __MAIN_H
-#define __MAIN_H
-  /* Includes ------------------------------------------------------------------*/
+#ifndef __USBD_DESC__H__
+#define __USBD_DESC__H__
 
-/* USER CODE BEGIN Includes */
+#ifdef __cplusplus
+ extern "C" {
+#endif
+/* Includes ------------------------------------------------------------------*/
+#include "usbd_def.h"
 
-/* USER CODE END Includes */
+/** @addtogroup STM32_USB_OTG_DEVICE_LIBRARY
+  * @{
+  */
+  
+/** @defgroup USB_DESC
+  * @brief general defines for the usb device library file
+  * @{
+  */ 
 
-/* Private define ------------------------------------------------------------*/
+/** @defgroup USB_DESC_Exported_Defines
+  * @{
+  */
 
-#define GPIO_LED1_Pin GPIO_PIN_5
-#define GPIO_LED1_GPIO_Port GPIOE
-#define GPIO_LED2_Pin GPIO_PIN_6
-#define GPIO_LED2_GPIO_Port GPIOE
-#define GPIO_S2_Pin GPIO_PIN_0
-#define GPIO_S2_GPIO_Port GPIOC
-#define GPIO_S3_Pin GPIO_PIN_1
-#define GPIO_S3_GPIO_Port GPIOC
-/* USER CODE BEGIN Private defines */
+/**
+  * @}
+  */ 
 
-/* USER CODE END Private defines */
+/** @defgroup USBD_DESC_Exported_TypesDefinitions
+  * @{
+  */
+/**
+  * @}
+  */ 
+
+/** @defgroup USBD_DESC_Exported_Macros
+  * @{
+  */ 
+/**
+  * @}
+  */ 
+
+/** @defgroup USBD_DESC_Exported_Variables
+  * @{
+  */ 
+extern USBD_DescriptorsTypeDef FS_Desc;
+/**
+  * @}
+  */ 
+
+/** @defgroup USBD_DESC_Exported_FunctionsPrototype
+  * @{
+  */ 
+  
+/**
+  * @}
+  */ 
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* __USBD_DESC_H */
 
 /**
   * @}
   */ 
 
 /**
-  * @}
+* @}
 */ 
-
-#endif /* __MAIN_H */
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

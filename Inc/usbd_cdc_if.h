@@ -1,7 +1,7 @@
 /**
   ******************************************************************************
-  * File Name          : main.h
-  * Description        : This file contains the common defines of the application
+  * @file           : usbd_cdc_if.h
+  * @brief          : Header for usbd_cdc_if file.
   ******************************************************************************
   *
   * Copyright (c) 2017 STMicroelectronics International N.V. 
@@ -39,29 +39,81 @@
   * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   *
   ******************************************************************************
-  */
+*/
+
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __MAIN_H
-#define __MAIN_H
-  /* Includes ------------------------------------------------------------------*/
+#ifndef __USBD_CDC_IF_H
+#define __USBD_CDC_IF_H
 
-/* USER CODE BEGIN Includes */
+#ifdef __cplusplus
+ extern "C" {
+#endif
+/* Includes ------------------------------------------------------------------*/
+#include "usbd_cdc.h"
+/* USER CODE BEGIN INCLUDE */
+/* USER CODE END INCLUDE */
 
-/* USER CODE END Includes */
+/** @addtogroup STM32_USB_OTG_DEVICE_LIBRARY
+  * @{
+  */
+  
+/** @defgroup USBD_CDC_IF
+  * @brief header 
+  * @{
+  */ 
 
-/* Private define ------------------------------------------------------------*/
+/** @defgroup USBD_CDC_IF_Exported_Defines
+  * @{
+  */ 
+/* USER CODE BEGIN EXPORTED_DEFINES */
+/* USER CODE END EXPORTED_DEFINES */
 
-#define GPIO_LED1_Pin GPIO_PIN_5
-#define GPIO_LED1_GPIO_Port GPIOE
-#define GPIO_LED2_Pin GPIO_PIN_6
-#define GPIO_LED2_GPIO_Port GPIOE
-#define GPIO_S2_Pin GPIO_PIN_0
-#define GPIO_S2_GPIO_Port GPIOC
-#define GPIO_S3_Pin GPIO_PIN_1
-#define GPIO_S3_GPIO_Port GPIOC
-/* USER CODE BEGIN Private defines */
+/**
+  * @}
+  */ 
 
-/* USER CODE END Private defines */
+/** @defgroup USBD_CDC_IF_Exported_Types
+  * @{
+  */  
+/* USER CODE BEGIN EXPORTED_TYPES */
+/* USER CODE END EXPORTED_TYPES */
+
+/**
+  * @}
+  */ 
+
+/** @defgroup USBD_CDC_IF_Exported_Macros
+  * @{
+  */ 
+/* USER CODE BEGIN EXPORTED_MACRO */
+/* USER CODE END EXPORTED_MACRO */
+
+/**
+  * @}
+  */ 
+
+/** @defgroup USBD_AUDIO_IF_Exported_Variables
+  * @{
+  */ 
+extern USBD_CDC_ItfTypeDef  USBD_Interface_fops_FS;
+
+/* USER CODE BEGIN EXPORTED_VARIABLES */
+/* USER CODE END EXPORTED_VARIABLES */
+
+/**
+  * @}
+  */ 
+
+/** @defgroup USBD_CDC_IF_Exported_FunctionsPrototype
+  * @{
+  */ 
+uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len);
+
+/* USER CODE BEGIN EXPORTED_FUNCTIONS */
+/* USER CODE END EXPORTED_FUNCTIONS */
+/**
+  * @}
+  */ 
 
 /**
   * @}
@@ -69,7 +121,12 @@
 
 /**
   * @}
-*/ 
+  */ 
+  
+#ifdef __cplusplus
+}
+#endif
+  
+#endif /* __USBD_CDC_IF_H */
 
-#endif /* __MAIN_H */
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
