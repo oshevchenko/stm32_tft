@@ -71,7 +71,8 @@
 /* Define size for the receive and transmit buffer over CDC */
 /* It's up to user to redefine and/or remove those define */
 #define APP_RX_DATA_SIZE  4
-#define APP_TX_DATA_SIZE  4
+#define APP_TX_DATA_SIZE  1024 // I think this can be any value (was 2048)
+
 /* USER CODE END PRIVATE_DEFINES */
 /**
   * @}
@@ -99,6 +100,13 @@ uint8_t UserRxBufferFS[APP_RX_DATA_SIZE];
 uint8_t UserTxBufferFS[APP_TX_DATA_SIZE];
 
 /* USER CODE BEGIN PRIVATE_VARIABLES */
+static uint8_t UserTxBuffer[APP_TX_DATA_SIZE]; // data for USB IN endpoind is stored in this buffer
+static uint16_t UserTxBufPtrIn = 0; // increment this pointer modulo APP_TX_DATA_SIZE when new data is available
+static __IO uint16_t UserTxBufPtrOut = 0; // increment this pointer modulo APP_TX_DATA_SIZE when data is drained
+static uint16_t UserTxBufPtrOutShadow = 0; // shadow of above
+static uint8_t UserTxBufPtrWaitCount = 0; // used to implement a timeout waiting for low-level USB driver
+static uint8_t UserTxNeedEmptyPacket = 0; // used to flush the USB IN endpoint if the last packet was exactly the endpoint packet size
+
 /* USER CODE END PRIVATE_VARIABLES */
 
 /**
@@ -261,8 +269,13 @@ static int8_t CDC_Control_FS  (uint8_t cmd, uint8_t* pbuf, uint16_t length)
 static int8_t CDC_Receive_FS (uint8_t* Buf, uint32_t *Len)
 {
   /* USER CODE BEGIN 6 */
-  USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
-  USBD_CDC_ReceivePacket(&hUsbDeviceFS);
+	int i;
+	for (i = 0; i < *Len; i++) stm32_microrl_insert_char((int)UserRxBufferFS[i]);
+	USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &UserRxBufferFS[0]);
+	USBD_CDC_ReceivePacket(&hUsbDeviceFS);
+
+//  USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
+//  USBD_CDC_ReceivePacket(&hUsbDeviceFS);
   return (USBD_OK);
   /* USER CODE END 6 */ 
 }
@@ -293,6 +306,69 @@ uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len)
 }
 
 /* USER CODE BEGIN PRIVATE_FUNCTIONS_IMPLEMENTATION */
+void CDC_Task() {
+
+    if (UserTxBufPtrOut == UserTxBufPtrIn && !UserTxNeedEmptyPacket) {
+        // No outstanding data to send
+        return;
+    }
+
+    if (UserTxBufPtrOut != UserTxBufPtrOutShadow) {
+        // We have sent data and are waiting for the low-level USB driver to
+        // finish sending it over the USB in-endpoint.
+        // SOF occurs every 1ms, so we have a 150 * 1ms = 150ms timeout
+        if (UserTxBufPtrWaitCount < 150) {
+                UserTxBufPtrWaitCount++;
+                return;
+        }
+        UserTxBufPtrOut = UserTxBufPtrOutShadow;
+    }
+
+    if (UserTxBufPtrOutShadow != UserTxBufPtrIn || UserTxNeedEmptyPacket) {
+        uint32_t buffptr;
+        uint32_t buffsize;
+
+        if (UserTxBufPtrOutShadow > UserTxBufPtrIn) { // rollback
+            buffsize = APP_TX_DATA_SIZE - UserTxBufPtrOutShadow;
+        } else {
+            buffsize = UserTxBufPtrIn - UserTxBufPtrOutShadow;
+        }
+
+        buffptr = UserTxBufPtrOutShadow;
+
+        USBD_CDC_SetTxBuffer(&hUsbDeviceFS, (uint8_t*)&UserTxBuffer[buffptr], buffsize);
+
+        if (USBD_CDC_TransmitPacket(&hUsbDeviceFS) == USBD_OK) {
+            UserTxBufPtrOutShadow += buffsize;
+            if (UserTxBufPtrOutShadow == APP_TX_DATA_SIZE) {
+                UserTxBufPtrOutShadow = 0;
+            }
+            UserTxBufPtrWaitCount = 0;
+
+            // According to the USB specification, a packet size of 64 bytes (CDC_DATA_FS_MAX_PACKET_SIZE)
+            // gets held at the USB host until the next packet is sent.  This is because a
+            // packet of maximum size is considered to be part of a longer chunk of data, and
+            // the host waits for all data to arrive (ie, waits for a packet < max packet size).
+            // To flush a packet of exactly max packet size, we need to send a zero-size packet.
+            // See eg http://www.cypress.com/?id=4&rID=92719
+            UserTxNeedEmptyPacket = (buffsize > 0 && buffsize % CDC_DATA_FS_MAX_PACKET_SIZE == 0 && UserTxBufPtrOutShadow == UserTxBufPtrIn);
+        }
+    }
+}
+
+void USBD_CDC_TxAlways(const uint8_t *buf, uint32_t len) {
+    for (int i = 0; i < len; i++) {
+        // If the CDC device is not connected to the host then we don't have anyone to receive our data.
+        // The device may become connected in the future, so we should at least try to fill the buffer
+        // and hope that it doesn't overflow by the time the device connects.
+        // If the device is not connected then we should go ahead and fill the buffer straight away,
+        // ignoring overflow.  Otherwise, we should make sure that we have enough room in the buffer.
+
+        UserTxBuffer[UserTxBufPtrIn] = buf[i];
+        UserTxBufPtrIn = (UserTxBufPtrIn + 1) & (APP_TX_DATA_SIZE - 1);
+    }
+}
+
 /* USER CODE END PRIVATE_FUNCTIONS_IMPLEMENTATION */
 
 /**

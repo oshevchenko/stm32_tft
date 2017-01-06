@@ -7,7 +7,7 @@
 #include "src/config.h"
 #include "src/microrl.h"
 #include "stm32_microrl_misc.h"
-//#include "event_queue.h"
+#include "event_queue.h"
 
 extern void USBD_CDC_TxAlways(const uint8_t *buf, uint32_t len);
 static microrl_t rl;
@@ -44,7 +44,7 @@ void stm32_microrl_insert_char(int ch)
 void print (const char * str)
 {
 //	int i = 0;
-//	USBD_CDC_TxAlways((uint8_t*)str, (uint32_t)strlen(str));
+	USBD_CDC_TxAlways((uint8_t*)str, (uint32_t)strlen(str));
 }
 
 // definition commands word
@@ -241,7 +241,7 @@ void sigint (void)
 {
 	print ("^C catched!\n\r");
 }
-#if 0
+
 void TERM_Task(void)
 {
 	eq_queue_param_u param;
@@ -264,5 +264,5 @@ void TERM_Task(void)
 	}
 	curr_cmd = COMMAND_EMPTY;
 }
-#endif
+
 

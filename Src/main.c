@@ -47,10 +47,14 @@
 
 /* USER CODE BEGIN Includes */
 #include "stm32_microrl_misc.h"
+#include "event_queue.h"
+#include "timer.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
 RTC_HandleTypeDef hrtc;
+
+TIM_HandleTypeDef htim6;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
@@ -62,6 +66,7 @@ void SystemClock_Config(void);
 void Error_Handler(void);
 static void MX_GPIO_Init(void);
 static void MX_RTC_Init(void);
+static void MX_TIM6_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
@@ -77,7 +82,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-	uint8_t blink = 0;
+	eq_queue_element_s ev;
   /* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
@@ -92,37 +97,62 @@ int main(void)
   MX_GPIO_Init();
   MX_RTC_Init();
   MX_USB_DEVICE_Init();
+  MX_TIM6_Init();
 
   /* USER CODE BEGIN 2 */
   init();
+  HAL_TIM_Base_Start_IT(&htim6);
   HAL_GPIO_WritePin(GPIO_LED1_GPIO_Port, GPIO_LED1_Pin, GPIO_PIN_SET);
-  HAL_GPIO_WritePin(GPIO_LED2_GPIO_Port, GPIO_LED2_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIO_LED2_GPIO_Port, GPIO_LED2_Pin, GPIO_PIN_SET);
+  TIMER_StartAuto(1, 300);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
+
+
   while (1)
   {
+	  TERM_Task();
+	  TIMER_Task();
+	  do {
+		  EQ_GetEvent(&ev);
+		  switch(ev.event){
+		  case NO_EVENT:
+			  break;
+		  case CMD_HV_ON:
+			  HAL_GPIO_WritePin(GPIO_LED2_GPIO_Port, GPIO_LED2_Pin, GPIO_PIN_RESET);
+			  break;
+		  case CMD_HV_OFF:
+			  HAL_GPIO_WritePin(GPIO_LED2_GPIO_Port, GPIO_LED2_Pin, GPIO_PIN_SET);
+			  break;
+		  case TIMER1_EXPIRED:
+			  HAL_GPIO_TogglePin(GPIO_LED1_GPIO_Port, GPIO_LED1_Pin);
+			  break;
+		  default:
+			  break;
+		  }
+	  } while (ev.event != NO_EVENT);
+  }
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
-	  uint8_t Buf[] = "test";
+//	  uint8_t Buf[100] = "";
+//	  sprintf(Buf,"cnt 0x%08d    ", int_counter);
+//
+//	  CDC_Transmit_FS(Buf, 15);
+//	  HAL_Delay(1000);
+//	  if (1 == blink)
+//	  {
+//		  HAL_GPIO_WritePin(GPIO_LED1_GPIO_Port, GPIO_LED1_Pin, GPIO_PIN_SET);
+//		  blink = 0;
+//	  } else {
+//		  HAL_GPIO_WritePin(GPIO_LED1_GPIO_Port, GPIO_LED1_Pin, GPIO_PIN_RESET);
+//		  blink = 1;
+//	  }
 
-	  CDC_Transmit_FS(Buf, 4);
-	  HAL_Delay(1000);
-	  if (1 == blink)
-	  {
-		  HAL_GPIO_WritePin(GPIO_LED1_GPIO_Port, GPIO_LED1_Pin, GPIO_PIN_SET);
-		  blink = 0;
-	  } else {
-		  HAL_GPIO_WritePin(GPIO_LED1_GPIO_Port, GPIO_LED1_Pin, GPIO_PIN_RESET);
-		  blink = 1;
-	  }
 
-
-
-
-  }
   /* USER CODE END 3 */
 
 }
@@ -199,6 +229,30 @@ static void MX_RTC_Init(void)
   hrtc.Init.AsynchPrediv = RTC_AUTO_1_SECOND;
   hrtc.Init.OutPut = RTC_OUTPUTSOURCE_ALARM;
   if (HAL_RTC_Init(&hrtc) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+}
+
+/* TIM6 init function */
+static void MX_TIM6_Init(void)
+{
+
+  TIM_MasterConfigTypeDef sMasterConfig;
+
+  htim6.Instance = TIM6;
+  htim6.Init.Prescaler = 0;
+  htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim6.Init.Period = 48000;
+  if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_ENABLE;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim6, &sMasterConfig) != HAL_OK)
   {
     Error_Handler();
   }
