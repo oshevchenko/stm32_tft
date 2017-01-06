@@ -143,10 +143,10 @@ void HAL_PCD_DataInStageCallback(PCD_HandleTypeDef *hpcd, uint8_t epnum)
   * @param  hpcd: PCD handle
   * @retval None
   */
-//void HAL_PCD_SOFCallback(PCD_HandleTypeDef *hpcd)
-//{
-//  USBD_LL_SOF((USBD_HandleTypeDef*)hpcd->pData);
-//}
+void HAL_PCD_SOFCallback(PCD_HandleTypeDef *hpcd)
+{
+  USBD_LL_SOF((USBD_HandleTypeDef*)hpcd->pData);
+}
 
 /**
   * @brief  Reset callback.

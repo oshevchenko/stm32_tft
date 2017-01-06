@@ -44,7 +44,7 @@ void stm32_microrl_insert_char(int ch)
 void print (const char * str)
 {
 //	int i = 0;
-	USBD_CDC_TxAlways((uint8_t*)str, (uint32_t)strlen(str));
+//	USBD_CDC_TxAlways((uint8_t*)str, (uint32_t)strlen(str));
 }
 
 // definition commands word

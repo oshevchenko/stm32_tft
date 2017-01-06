@@ -77,7 +77,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-
+	uint8_t blink = 0;
   /* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
@@ -106,6 +106,21 @@ int main(void)
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
+	  uint8_t Buf[] = "test";
+
+	  CDC_Transmit_FS(Buf, 4);
+	  HAL_Delay(1000);
+	  if (1 == blink)
+	  {
+		  HAL_GPIO_WritePin(GPIO_LED1_GPIO_Port, GPIO_LED1_Pin, GPIO_PIN_SET);
+		  blink = 0;
+	  } else {
+		  HAL_GPIO_WritePin(GPIO_LED1_GPIO_Port, GPIO_LED1_Pin, GPIO_PIN_RESET);
+		  blink = 1;
+	  }
+
+
+
 
   }
   /* USER CODE END 3 */
