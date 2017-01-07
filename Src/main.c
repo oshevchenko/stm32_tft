@@ -109,9 +109,6 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-
-
-
   while (1)
   {
 	  TERM_Task();
@@ -121,6 +118,9 @@ int main(void)
 		  switch(ev.event){
 		  case NO_EVENT:
 			  break;
+		  case CMD_WIDTH:
+		  	  TIMER_StartAuto(1, ev.param.uiParam);
+		  	  break;
 		  case CMD_HV_ON:
 			  HAL_GPIO_WritePin(GPIO_LED2_GPIO_Port, GPIO_LED2_Pin, GPIO_PIN_RESET);
 			  break;
