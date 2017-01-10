@@ -56,6 +56,8 @@ RTC_HandleTypeDef hrtc;
 
 TIM_HandleTypeDef htim6;
 
+SRAM_HandleTypeDef hsram1;
+
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 
@@ -67,6 +69,7 @@ void Error_Handler(void);
 static void MX_GPIO_Init(void);
 static void MX_RTC_Init(void);
 static void MX_TIM6_Init(void);
+static void MX_FSMC_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
@@ -98,6 +101,7 @@ int main(void)
   MX_RTC_Init();
   MX_USB_DEVICE_Init();
   MX_TIM6_Init();
+  MX_FSMC_Init();
 
   /* USER CODE BEGIN 2 */
   init();
@@ -274,10 +278,14 @@ static void MX_GPIO_Init(void)
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOE_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOE, GPIO_LED1_Pin|GPIO_LED2_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIO_LCD_RST_GPIO_Port, GPIO_LCD_RST_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : GPIO_LED1_Pin GPIO_LED2_Pin */
   GPIO_InitStruct.Pin = GPIO_LED1_Pin|GPIO_LED2_Pin;
@@ -285,11 +293,62 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : GPIO_S2_Pin GPIO_S3_Pin */
-  GPIO_InitStruct.Pin = GPIO_S2_Pin|GPIO_S3_Pin;
+  /*Configure GPIO pin : GPIO_S2_Pin */
+  GPIO_InitStruct.Pin = GPIO_S2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIO_S2_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : GPIO_LCD_RST_Pin */
+  GPIO_InitStruct.Pin = GPIO_LCD_RST_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIO_LCD_RST_GPIO_Port, &GPIO_InitStruct);
+
+}
+
+/* FSMC initialization function */
+static void MX_FSMC_Init(void)
+{
+  FSMC_NORSRAM_TimingTypeDef Timing;
+
+  /** Perform the SRAM1 memory initialization sequence
+  */
+  hsram1.Instance = FSMC_NORSRAM_DEVICE;
+  hsram1.Extended = FSMC_NORSRAM_EXTENDED_DEVICE;
+  /* hsram1.Init */
+  hsram1.Init.NSBank = FSMC_NORSRAM_BANK1;
+  hsram1.Init.DataAddressMux = FSMC_DATA_ADDRESS_MUX_DISABLE;
+  hsram1.Init.MemoryType = FSMC_MEMORY_TYPE_SRAM;
+  hsram1.Init.MemoryDataWidth = FSMC_NORSRAM_MEM_BUS_WIDTH_16;
+  hsram1.Init.BurstAccessMode = FSMC_BURST_ACCESS_MODE_DISABLE;
+  hsram1.Init.WaitSignalPolarity = FSMC_WAIT_SIGNAL_POLARITY_LOW;
+  hsram1.Init.WrapMode = FSMC_WRAP_MODE_DISABLE;
+  hsram1.Init.WaitSignalActive = FSMC_WAIT_TIMING_BEFORE_WS;
+  hsram1.Init.WriteOperation = FSMC_WRITE_OPERATION_ENABLE;
+  hsram1.Init.WaitSignal = FSMC_WAIT_SIGNAL_DISABLE;
+  hsram1.Init.ExtendedMode = FSMC_EXTENDED_MODE_DISABLE;
+  hsram1.Init.AsynchronousWait = FSMC_ASYNCHRONOUS_WAIT_DISABLE;
+  hsram1.Init.WriteBurst = FSMC_WRITE_BURST_DISABLE;
+  /* Timing */
+  Timing.AddressSetupTime = 15;
+  Timing.AddressHoldTime = 15;
+  Timing.DataSetupTime = 255;
+  Timing.BusTurnAroundDuration = 15;
+  Timing.CLKDivision = 16;
+  Timing.DataLatency = 17;
+  Timing.AccessMode = FSMC_ACCESS_MODE_A;
+  /* ExtTiming */
+
+  if (HAL_SRAM_Init(&hsram1, &Timing, NULL) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Disconnect NADV
+  */
+
+  __HAL_AFIO_FSMCNADV_DISCONNECTED();
 
 }
 
