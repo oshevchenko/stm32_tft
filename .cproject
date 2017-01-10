@@ -40,7 +40,7 @@
 									<listOptionValue builtIn="false" value="../Drivers/CMSIS/Device/ST/STM32F1xx/Include" />
 									<listOptionValue builtIn="false" value="../Drivers/CMSIS/Include" />
 									<listOptionValue builtIn="false" value="../Middlewares/ST/STM32_USB_Device_Library/Core/Inc" />
-									<listOptionValue builtIn="false" value="../Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc" />
+									<listOptionValue builtIn="false" value="../Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc" />
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/stm32_tft/microrl-master}&quot;" />
 								</option>
 								<option id="gnu.c.compiler.option.preprocessor.def.symbols.423996317" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" useByScannerDiscovery="false" valueType="definedSymbols">
@@ -128,7 +128,7 @@
 									<listOptionValue builtIn="false" value="../Drivers/CMSIS/Device/ST/STM32F1xx/Include" />
 									<listOptionValue builtIn="false" value="../Drivers/CMSIS/Include" />
 									<listOptionValue builtIn="false" value="../Middlewares/ST/STM32_USB_Device_Library/Core/Inc" />
-									<listOptionValue builtIn="false" value="../Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc" />
+									<listOptionValue builtIn="false" value="../Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc" />
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/stm32_tft/microrl-master}&quot;" />
 								</option>
 								<option id="gnu.c.compiler.option.preprocessor.def.symbols.363549694" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" useByScannerDiscovery="false" valueType="definedSymbols">
