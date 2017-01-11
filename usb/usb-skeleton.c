@@ -92,9 +92,6 @@ static int skel_open(struct inode *inode, struct file *file)
 	struct usb_interface *interface;
 	int subminor;
 	int retval = 0;
-	err("%s - 1, error %d", __func__,
-		    retval);
-
 	subminor = iminor(inode);
 
 	interface = usb_find_interface(&skel_driver, subminor);
@@ -138,9 +135,6 @@ static int skel_open(struct inode *inode, struct file *file)
 	/* save our object in the file's private structure */
 	file->private_data = dev;
 	mutex_unlock(&dev->io_mutex);
-	err("%s - 2, error %d", __func__,
-		    retval);
-
 exit:
 	return retval;
 }
@@ -394,35 +388,23 @@ static ssize_t skel_write(struct file *file, const char *user_buffer,
 	char *buf = NULL;
 	size_t writesize = min(count, (size_t)MAX_TRANSFER);
 
-	err("%s - 1, error %d", __func__,
-		    retval);
-
 	dev = file->private_data;
 
 	/* verify that we actually have some data to write */
 	if (count == 0)
 		goto exit;
-	err("%s - 2, error %d", __func__,
-		    retval);
-
 	/*
 	 * limit the number of URBs in flight to stop a user from using up all
 	 * RAM
 	 */
 	if (!(file->f_flags & O_NONBLOCK)) {
 		if (down_interruptible(&dev->limit_sem)) {
-	err("%s - 3, error %d", __func__,
-		    retval);
-
 			retval = -ERESTARTSYS;
 			goto exit;
 		}
 	} else {
 		if (down_trylock(&dev->limit_sem)) {
 			retval = -EAGAIN;
-	err("%s - 4, error %d", __func__,
-		    retval);
-
 			goto exit;
 		}
 	}
@@ -436,18 +418,12 @@ static ssize_t skel_write(struct file *file, const char *user_buffer,
 		retval = (retval == -EPIPE) ? retval : -EIO;
 	}
 	spin_unlock_irq(&dev->err_lock);
-	err("%s - 5, error %d", __func__,
-		    retval);
-
 	if (retval < 0)
 		goto error;
 
 	/* create a urb, and a buffer for it, and copy the data to the urb */
 	urb = usb_alloc_urb(0, GFP_KERNEL);
 	if (!urb) {
-	err("%s - 6, error %d", __func__,
-		    retval);
-
 		retval = -ENOMEM;
 		goto error;
 	}
@@ -455,17 +431,11 @@ static ssize_t skel_write(struct file *file, const char *user_buffer,
 	buf = usb_alloc_coherent(dev->udev, writesize, GFP_KERNEL,
 				 &urb->transfer_dma);
 	if (!buf) {
-	err("%s - 7, error %d", __func__,
-		    retval);
-
 		retval = -ENOMEM;
 		goto error;
 	}
 
 	if (copy_from_user(buf, user_buffer, writesize)) {
-	err("%s - 8, error %d", __func__,
-		    retval);
-
 		retval = -EFAULT;
 		goto error;
 	}
@@ -474,9 +444,6 @@ static ssize_t skel_write(struct file *file, const char *user_buffer,
 	mutex_lock(&dev->io_mutex);
 	if (!dev->interface) {		/* disconnect() was called */
 		mutex_unlock(&dev->io_mutex);
-	err("%s - 9, error %d", __func__,
-		    retval);
-
 		retval = -ENODEV;
 		goto error;
 	}
@@ -502,9 +469,6 @@ static ssize_t skel_write(struct file *file, const char *user_buffer,
 	 * it entirely
 	 */
 	usb_free_urb(urb);
-
-	err("%s - 10, error %d", __func__,
-		    retval);
 
 	return writesize;
 
