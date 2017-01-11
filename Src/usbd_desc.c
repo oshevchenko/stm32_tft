@@ -66,14 +66,17 @@
 /** @defgroup USBD_DESC_Private_Defines
   * @{
   */ 
-#define USBD_VID     1155
+//
+//#define USBD_VID     1155
+#define USBD_VID     0xfff0
 #define USBD_LANGID_STRING     1033
-#define USBD_MANUFACTURER_STRING     "STMicroelectronics"
-#define USBD_PID_FS     22314
-#define USBD_PRODUCT_STRING_FS     "STM32 Mass Storage"
+#define USBD_MANUFACTURER_STRING     "GlobalLogic"
+//#define USBD_PID_FS     22314
+#define USBD_PID_FS     0xfff0
+#define USBD_PRODUCT_STRING_FS     "usb-skeleton test"
 #define USBD_SERIALNUMBER_STRING_FS     "00000000001A"
-#define USBD_CONFIGURATION_STRING_FS     "MSC Config"
-#define USBD_INTERFACE_STRING_FS     "MSC Interface"
+#define USBD_CONFIGURATION_STRING_FS     "usb-skeleton Config"
+#define USBD_INTERFACE_STRING_FS     "usb-skeleton Interface"
 
 /* USER CODE BEGIN 0 */
 

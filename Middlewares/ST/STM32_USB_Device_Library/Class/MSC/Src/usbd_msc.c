@@ -157,10 +157,10 @@ __ALIGN_BEGIN uint8_t USBD_MSC_CfgHSDesc[USB_MSC_CONFIG_DESC_SIZ]  __ALIGN_END =
   0x00,   /* bInterfaceNumber: Number of Interface */
   0x00,   /* bAlternateSetting: Alternate setting */
   0x02,   /* bNumEndpoints*/
-  0x08,   /* bInterfaceClass: MSC Class */
-  0x06,   /* bInterfaceSubClass : SCSI transparent*/
-  0x50,   /* nInterfaceProtocol */
-  0x05,          /* iInterface: */
+  0xFF,   /* bInterfaceClass: MSC Class */
+  0x00,   /* bInterfaceSubClass : SCSI transparent*/
+  0x00,   /* nInterfaceProtocol */
+  0x00,          /* iInterface: */
   /********************  Mass Storage Endpoints ********************/
   0x07,   /*Endpoint descriptor length = 7*/
   0x05,   /*Endpoint descriptor type */
@@ -201,10 +201,10 @@ uint8_t USBD_MSC_CfgFSDesc[USB_MSC_CONFIG_DESC_SIZ]  __ALIGN_END =
   0x00,   /* bInterfaceNumber: Number of Interface */
   0x00,   /* bAlternateSetting: Alternate setting */
   0x02,   /* bNumEndpoints*/
-  0x08,   /* bInterfaceClass: MSC Class */
-  0x06,   /* bInterfaceSubClass : SCSI transparent*/
-  0x50,   /* nInterfaceProtocol */
-  0x05,          /* iInterface: */
+  0xFF,   /* bInterfaceClass: MSC Class */
+  0x00,   /* bInterfaceSubClass : SCSI transparent*/
+  0x00,   /* nInterfaceProtocol */
+  0x00,          /* iInterface: */
   /********************  Mass Storage Endpoints ********************/
   0x07,   /*Endpoint descriptor length = 7*/
   0x05,   /*Endpoint descriptor type */
@@ -243,10 +243,10 @@ __ALIGN_BEGIN uint8_t USBD_MSC_OtherSpeedCfgDesc[USB_MSC_CONFIG_DESC_SIZ]   __AL
   0x00,   /* bInterfaceNumber: Number of Interface */
   0x00,   /* bAlternateSetting: Alternate setting */
   0x02,   /* bNumEndpoints*/
-  0x08,   /* bInterfaceClass: MSC Class */
-  0x06,   /* bInterfaceSubClass : SCSI transparent command set*/
-  0x50,   /* nInterfaceProtocol */
-  0x05,          /* iInterface: */
+  0xFF,   /* bInterfaceClass: MSC Class */
+  0x00,   /* bInterfaceSubClass : SCSI transparent command set*/
+  0x00,   /* nInterfaceProtocol */
+  0x00,          /* iInterface: */
   /********************  Mass Storage Endpoints ********************/
   0x07,   /*Endpoint descriptor length = 7*/
   0x05,   /*Endpoint descriptor type */
@@ -512,6 +512,7 @@ uint8_t  USBD_MSC_Setup (USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req)
 uint8_t  USBD_MSC_DataIn (USBD_HandleTypeDef *pdev, 
                               uint8_t epnum)
 {
+  HAL_GPIO_TogglePin(GPIO_LED1_GPIO_Port, GPIO_LED1_Pin);
   MSC_BOT_DataIn(pdev , epnum);
   return 0;
 }
@@ -526,6 +527,7 @@ uint8_t  USBD_MSC_DataIn (USBD_HandleTypeDef *pdev,
 uint8_t  USBD_MSC_DataOut (USBD_HandleTypeDef *pdev, 
                                uint8_t epnum)
 {
+  HAL_GPIO_TogglePin(GPIO_LED1_GPIO_Port, GPIO_LED1_Pin);
   MSC_BOT_DataOut(pdev , epnum);
   return 0;
 }

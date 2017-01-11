@@ -46,7 +46,7 @@
 #include "usb_device.h"
 
 /* USER CODE BEGIN Includes */
-#include "stm32_microrl_misc.h"
+//#include "stm32_microrl_misc.h"
 #include "event_queue.h"
 #include "timer.h"
 /* USER CODE END Includes */
@@ -100,18 +100,18 @@ int main(void)
   MX_USB_DEVICE_Init();
 
   /* USER CODE BEGIN 2 */
-  init();
+//  init();
   HAL_TIM_Base_Start_IT(&htim6);
   HAL_GPIO_WritePin(GPIO_LED1_GPIO_Port, GPIO_LED1_Pin, GPIO_PIN_SET);
   HAL_GPIO_WritePin(GPIO_LED2_GPIO_Port, GPIO_LED2_Pin, GPIO_PIN_SET);
-  TIMER_StartAuto(1, 300);
+  TIMER_StartAuto(1, 50);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  TERM_Task();
+//	  TERM_Task();
 	  TIMER_Task();
 	  do {
 		  EQ_GetEvent(&ev);
@@ -128,7 +128,8 @@ int main(void)
 			  HAL_GPIO_WritePin(GPIO_LED2_GPIO_Port, GPIO_LED2_Pin, GPIO_PIN_SET);
 			  break;
 		  case TIMER1_EXPIRED:
-			  HAL_GPIO_TogglePin(GPIO_LED1_GPIO_Port, GPIO_LED1_Pin);
+			  //HAL_GPIO_TogglePin(GPIO_LED1_GPIO_Port, GPIO_LED1_Pin);
+			  HAL_GPIO_TogglePin(GPIO_LED2_GPIO_Port, GPIO_LED2_Pin);
 			  break;
 		  default:
 			  break;
