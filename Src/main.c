@@ -49,6 +49,7 @@
 #include "stm32_microrl_misc.h"
 #include "event_queue.h"
 #include "timer.h"
+#include "lcd.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -109,6 +110,15 @@ int main(void)
   HAL_GPIO_WritePin(GPIO_LED1_GPIO_Port, GPIO_LED1_Pin, GPIO_PIN_SET);
   HAL_GPIO_WritePin(GPIO_LED2_GPIO_Port, GPIO_LED2_Pin, GPIO_PIN_SET);
   TIMER_StartAuto(1, 300);
+  LCDInit();
+  LCDOn();
+  // Color in RGB565 format
+  // http://www.barth-dev.de/online/rgb565-color-picker/
+  // Red - 0xF800
+  // Blue - 0x001F
+  // Yellow - 0xFFE0
+  //LCDClear(0xF800);
+  LCDUaFlag();
   /* USER CODE END 2 */
 
   /* Infinite loop */
