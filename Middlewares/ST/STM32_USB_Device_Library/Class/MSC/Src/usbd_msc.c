@@ -512,6 +512,7 @@ uint8_t  USBD_MSC_Setup (USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req)
 uint8_t  USBD_MSC_DataIn (USBD_HandleTypeDef *pdev, 
                               uint8_t epnum)
 {
+  HAL_GPIO_TogglePin(GPIO_LED2_GPIO_Port, GPIO_LED2_Pin);
   HAL_GPIO_TogglePin(GPIO_LED1_GPIO_Port, GPIO_LED1_Pin);
   MSC_BOT_DataIn(pdev , epnum);
   return 0;
@@ -527,6 +528,7 @@ uint8_t  USBD_MSC_DataIn (USBD_HandleTypeDef *pdev,
 uint8_t  USBD_MSC_DataOut (USBD_HandleTypeDef *pdev, 
                                uint8_t epnum)
 {
+  HAL_GPIO_TogglePin(GPIO_LED2_GPIO_Port, GPIO_LED2_Pin);
   HAL_GPIO_TogglePin(GPIO_LED1_GPIO_Port, GPIO_LED1_Pin);
   MSC_BOT_DataOut(pdev , epnum);
   return 0;
