@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<history>
+   <processor signature="arm-none-eabi-gcc -mcpu=cortex-m3 -mthumb -g3 -Map=coocox_stm32_tft.map -O0 --gc-sections -mfloat-abi=soft -LD:/workspace/stm32_workspace/coocox_stm32_tft -TD:/workspace/stm32_workspace/coocox_stm32_tft/stm32f103vetx_flash.ld -g">
+      <target file="coocox_stm32_tft.elf" lastModified="159f480d159">
+         <source file="..\obj\event_queue.o" lastModified="159f47fb762"/>
+         <source file="..\obj\stm32f1xx_hal_cortex.o" lastModified="159f47fb425"/>
+         <source file="..\obj\stm32f1xx_hal_tim_ex.o" lastModified="159f47ff3be"/>
+         <source file="..\obj\stm32f1xx_hal_rcc_ex.o" lastModified="159f47fa9c8"/>
+         <source file="..\obj\startup_stm32f103xe.o" lastModified="159f47fc4e0"/>
+         <source file="..\obj\stm32f1xx_hal.o" lastModified="159f47fadf5"/>
+         <source file="..\obj\stm32f1xx_hal_gpio_ex.o" lastModified="159f47fb20d"/>
+         <source file="..\obj\system_stm32f1xx.o" lastModified="159f47fb974"/>
+         <source file="..\obj\usbd_storage_if.o" lastModified="159f47fd7bb"/>
+         <source file="..\obj\main.o" lastModified="159f47fc245"/>
+         <source file="..\obj\stm32f1xx_hal_sram.o" lastModified="159f47fed57"/>
+         <source file="..\obj\stm32f1xx_hal_rtc.o" lastModified="159f47fde1f"/>
+         <source file="..\obj\stm32f1xx_hal_dma.o" lastModified="159f47fcb48"/>
+         <source file="..\obj\stm32f1xx_hal_flash_ex.o" lastModified="159f47fe4f5"/>
+         <source file="..\obj\usbd_msc_data.o" lastModified="159f47fd9c6"/>
+         <source file="..\obj\stm32f1xx_hal_gpio.o" lastModified="159f47fc90c"/>
+         <source file="..\obj\usbd_desc.o" lastModified="159f47fce52"/>
+         <source file="..\obj\stm32f1xx_hal_rtc_ex.o" lastModified="159f47ff181"/>
+         <source file="..\obj\timer.o" lastModified="159f47fb62f"/>
+         <source file="..\obj\stm32f1xx_hal_pcd.o" lastModified="159f47fbdf4"/>
+         <source file="..\obj\stm32f1xx_it.o" lastModified="159f47fb004"/>
+         <source file="..\obj\usbd_conf.o" lastModified="159f47fd0f8"/>
+         <source file="..\obj\usbd_ioreq.o" lastModified="159f47feb45"/>
+         <source file="..\obj\usb_device.o" lastModified="159f47fef6c"/>
+         <source file="..\obj\usbd_ctlreq.o" lastModified="159f47fe71c"/>
+         <source file="..\obj\usbd_core.o" lastModified="159f47fc01e"/>
+         <source file="..\obj\stm32f1xx_hal_pcd_ex.o" lastModified="159f47fe929"/>
+         <source file="..\obj\stm32f1xx_ll_usb.o" lastModified="159f47fc481"/>
+         <source file="..\obj\stm32f1xx_hal_msp.o" lastModified="159f47fd356"/>
+         <source file="..\obj\stm32f1xx_ll_fsmc.o" lastModified="159f47fdbe5"/>
+         <source file="..\obj\stm32f1xx_hal_flash.o" lastModified="159f47fc6f6"/>
+         <source file="..\obj\stm32f1xx_hal_tim.o" lastModified="159f47fe2cd"/>
+         <source file="..\obj\lcd.o" lastModified="159f47fe029"/>
+         <source file="..\obj\stm32f1xx_hal_pwr.o" lastModified="159f47fabe5"/>
+         <source file="..\obj\usbd_msc.o" lastModified="159f480cd48"/>
+         <source file="..\obj\stm32f1xx_hal_rcc.o" lastModified="159f47fbbb9"/>
+      </target>
+   </processor>
+</history>
