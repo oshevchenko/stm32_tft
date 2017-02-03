@@ -11,31 +11,26 @@
 <folder appearance="1" expanded="2">
 <presentation id="org.eclipse.ui.presentations.WorkbenchPresentationFactory">
 <part id="0"/>
-<part id="6"/>
 <part id="5"/>
+<part id="4"/>
 <part id="1"/>
 <part id="2"/>
 <part id="3"/>
-<part id="4"/>
+<part id="6"/>
 <part id="7"/>
 <part id="8"/>
 <part id="9"/>
-<part id="10"/>
 </presentation>
 </folder>
 </info>
 </editorArea>
-<editor activePart="true" focus="true" id="org.eclipse.cdt.ui.editor.CEditor" name="usbd_msc.c" partName="usbd_msc.c" path="D:/workspace/stm32_workspace/coocox_stm32_tft/app/Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Src/usbd_msc.c" title="usbd_msc.c" tooltip="D:/workspace/stm32_workspace/coocox_stm32_tft/app/Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Src/usbd_msc.c" workbook="DefaultEditorWorkbook">
+<editor id="org.eclipse.cdt.ui.editor.CEditor" name="usbd_msc.c" partName="usbd_msc.c" path="D:/workspace/stm32_workspace/stm32_tft/app/Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Src/usbd_msc.c" title="usbd_msc.c" tooltip="D:/workspace/stm32_workspace/stm32_tft/app/Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Src/usbd_msc.c" workbook="DefaultEditorWorkbook">
 <input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/coocox_stm32_tft/Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Src/usbd_msc.c"/>
-<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="16404" selectionTopPixel="8505"/>
+<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="16404" selectionTopPixel="8421"/>
 </editor>
-<editor id="org.eclipse.cdt.ui.editor.CEditor" name="usbd_conf.c" partName="usbd_conf.c" path="D:/workspace/stm32_workspace/coocox_stm32_tft/app/Src/usbd_conf.c" title="usbd_conf.c" tooltip="D:/workspace/stm32_workspace/coocox_stm32_tft/app/Src/usbd_conf.c" workbook="DefaultEditorWorkbook">
+<editor activePart="true" focus="true" id="org.eclipse.cdt.ui.editor.CEditor" name="usbd_conf.c" partName="usbd_conf.c" path="D:/workspace/stm32_workspace/stm32_tft/app/Src/usbd_conf.c" title="usbd_conf.c" tooltip="D:/workspace/stm32_workspace/stm32_tft/app/Src/usbd_conf.c" workbook="DefaultEditorWorkbook">
 <input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/coocox_stm32_tft/Src/usbd_conf.c"/>
-<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="18753" selectionTopPixel="9465"/>
-</editor>
-<editor id="org.eclipse.cdt.ui.editor.CEditor" name="usbd_desc.c" partName="usbd_desc.c" path="D:/workspace/stm32_workspace/coocox_stm32_tft/app/Src/usbd_desc.c" title="usbd_desc.c" tooltip="D:/workspace/stm32_workspace/coocox_stm32_tft/app/Src/usbd_desc.c" workbook="DefaultEditorWorkbook">
-<input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/coocox_stm32_tft/Src/usbd_desc.c"/>
-<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="0" selectionTopPixel="0"/>
+<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="18306" selectionTopPixel="9315"/>
 </editor>
 <editor id="org.eclipse.cdt.ui.editor.CEditor" name="usb_device.c" partName="usb_device.c" path="D:/workspace/stm32_workspace/coocox_stm32_tft/app/Src/usb_device.c" title="usb_device.c" tooltip="D:/workspace/stm32_workspace/coocox_stm32_tft/app/Src/usb_device.c" workbook="DefaultEditorWorkbook">
 <input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/coocox_stm32_tft/Src/usb_device.c"/>
@@ -45,13 +40,13 @@
 <input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/coocox_stm32_tft/Src/usbd_storage_if.c"/>
 <editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="1894" selectionTopPixel="0"/>
 </editor>
-<editor id="org.eclipse.cdt.ui.editor.CEditor" name="usbd_msc.h" partName="usbd_msc.h" path="D:/workspace/stm32_workspace/coocox_stm32_tft/app/Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc/usbd_msc.h" title="usbd_msc.h" tooltip="D:/workspace/stm32_workspace/coocox_stm32_tft/app/Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc/usbd_msc.h" workbook="DefaultEditorWorkbook">
+<editor id="org.eclipse.cdt.ui.editor.CEditor" name="usbd_msc.h" partName="usbd_msc.h" path="D:/workspace/stm32_workspace/stm32_tft/app/Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc/usbd_msc_.h" title="usbd_msc.h" tooltip="D:/workspace/stm32_workspace/stm32_tft/app/Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc/usbd_msc.h - (does not exist)" workbook="DefaultEditorWorkbook">
 <input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/coocox_stm32_tft/Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc/usbd_msc.h"/>
-<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="2657" selectionTopPixel="1101"/>
+<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="0" selectionTopPixel="0"/>
 </editor>
-<editor id="org.eclipse.cdt.ui.editor.CEditor" name="usbd_msc_bot.h" partName="usbd_msc_bot.h" path="D:/workspace/stm32_workspace/coocox_stm32_tft/app/Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc/usbd_msc_bot.h" title="usbd_msc_bot.h" tooltip="D:/workspace/stm32_workspace/coocox_stm32_tft/app/Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc/usbd_msc_bot.h" workbook="DefaultEditorWorkbook">
+<editor id="org.eclipse.cdt.ui.editor.CEditor" name="usbd_msc_bot.h" partName="usbd_msc_bot.h" path="D:/workspace/stm32_workspace/stm32_tft/app/Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc/usbd_msc_bot_.h" title="usbd_msc_bot.h" tooltip="D:/workspace/stm32_workspace/stm32_tft/app/Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc/usbd_msc_bot.h" workbook="DefaultEditorWorkbook">
 <input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/coocox_stm32_tft/Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc/usbd_msc_bot.h"/>
-<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="2995" selectionTopPixel="870"/>
+<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="3627" selectionTopPixel="1275"/>
 </editor>
 <editor id="org.eclipse.cdt.ui.editor.CEditor" name="lcd.c" partName="lcd.c" path="D:/workspace/stm32_workspace/coocox_stm32_tft/app/Src/Drv/lcd.c" title="lcd.c" tooltip="D:/workspace/stm32_workspace/coocox_stm32_tft/app/Src/Drv/lcd.c" workbook="DefaultEditorWorkbook">
 <input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/coocox_stm32_tft/Src/Drv/lcd.c"/>
@@ -72,7 +67,7 @@
 </editors>
 <views>
 <view id="org.coocox.builder.ui.views.ProjectView" partName="Project">
-<viewState CommonNavigator.LINKING_ENABLED="0" horizontalPosition="0" org.eclipse.ui.navigator.resources.workingSets.showTopLevelWorkingSets="0" verticalPosition="0">
+<viewState CommonNavigator.LINKING_ENABLED="0" horizontalPosition="0" org.eclipse.ui.navigator.resources.workingSets.showTopLevelWorkingSets="0" verticalPosition="74">
 <expanded>
 <element path="/coocox_stm32_tft"/>
 <element path="/coocox_stm32_tft/Drivers"/>
@@ -80,6 +75,11 @@
 <element path="/coocox_stm32_tft/Drivers/CMSIS/Device"/>
 <element path="/coocox_stm32_tft/Drivers/CMSIS/Device/ST"/>
 <element path="/coocox_stm32_tft/Drivers/CMSIS/Device/ST/STM32F1xx"/>
+<element path="/coocox_stm32_tft/Drivers/CMSIS/Device/ST/STM32F1xx/Include"/>
+<element path="/coocox_stm32_tft/Drivers/CMSIS/Device/ST/STM32F1xx/Source"/>
+<element path="/coocox_stm32_tft/Drivers/CMSIS/Device/ST/STM32F1xx/Source/Templates"/>
+<element path="/coocox_stm32_tft/Drivers/CMSIS/Device/ST/STM32F1xx/Source/Templates/gcc"/>
+<element path="/coocox_stm32_tft/Drivers/CMSIS/Include"/>
 <element path="/coocox_stm32_tft/Drivers/STM32F1xx_HAL_Driver"/>
 <element path="/coocox_stm32_tft/Drivers/STM32F1xx_HAL_Driver/Inc"/>
 <element path="/coocox_stm32_tft/Drivers/STM32F1xx_HAL_Driver/Src"/>
@@ -89,12 +89,13 @@
 <element path="/coocox_stm32_tft/Middlewares/ST/STM32_USB_Device_Library"/>
 <element path="/coocox_stm32_tft/Middlewares/ST/STM32_USB_Device_Library/Class"/>
 <element path="/coocox_stm32_tft/Middlewares/ST/STM32_USB_Device_Library/Class/MSC"/>
+<element path="/coocox_stm32_tft/Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc"/>
 <element path="/coocox_stm32_tft/Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Src"/>
 <element path="/coocox_stm32_tft/Src"/>
 <element path="/coocox_stm32_tft/Src/Drv"/>
 </expanded>
 <selection>
-<element path="/coocox_stm32_tft"/>
+<element path="/coocox_stm32_tft/Src/usbd_conf.c"/>
 </selection>
 </viewState>
 </view>
@@ -315,57 +316,16 @@
 <editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/coocox_stm32_tft/Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc/usbd_msc.h"/>
 <editor factoryID="org.eclipse.cdt.ui.ExternalEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="D:\workspace\stm32_workspace\coocox_stm32_tft\app\Middlewares\ST\STM32_USB_Device_Library\Class\MSC\Inc\usbd_msc_bot.h" project="coocox_stm32_tft"/>
 <editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/coocox_stm32_tft/Src/Drv/lcd.c"/>
-<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/coocox_stm32_tft/Src/Drv/lcd.h"/>
 <editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/coocox_stm32_tft/Src/main.c"/>
 <editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/coocox_stm32_tft/Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc/usbd_msc_bot.h"/>
 <editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/coocox_stm32_tft/Src/usbd_conf.c"/>
 <editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/coocox_stm32_tft/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_pcd.c"/>
+<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/coocox_stm32_tft/Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc/usbd_msc.h"/>
+<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/coocox_stm32_tft/Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc/usbd_msc_bot.h"/>
+<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/coocox_stm32_tft/Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc/usbd_msc_bot.h"/>
+<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/coocox_stm32_tft/Src/usbd_desc.c"/>
+<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/coocox_stm32_tft/Src/usbd_conf.c"/>
 </editors>
-<item historyLabel="usbd_msc.c" index="0">
-<position info="not_deleted" x="17809" y="0"/>
-</item>
-<item historyLabel="main.c" index="5">
-<position info="not_deleted" x="4829" y="0"/>
-</item>
-<item historyLabel="lcd.c" index="3">
-<position info="not_deleted" x="1289" y="0"/>
-</item>
-<item historyLabel="usbd_msc.c" index="0">
-<position/>
-</item>
-<item historyLabel="lcd.h" index="4">
-<position info="not_deleted" x="2597" y="0"/>
-</item>
-<item historyLabel="usbd_msc.c" index="0">
-<position/>
-</item>
-<item historyLabel="usbd_msc_bot.h" index="6">
-<position/>
-</item>
-<item historyLabel="usbd_msc_bot.h" index="6">
-<position/>
-</item>
-<item historyLabel="usbd_msc.c" index="0">
-<position info="not_deleted" x="16480" y="0"/>
-</item>
-<item historyLabel="usbd_msc.h" index="1">
-<position info="not_deleted" x="2660" y="0"/>
-</item>
-<item historyLabel="usbd_msc_bot.h" index="2">
-<position/>
-</item>
-<item historyLabel="usbd_msc_bot.h" index="2">
-<position/>
-</item>
-<item historyLabel="usbd_msc.c" index="0">
-<position info="not_deleted" x="16892" y="0"/>
-</item>
-<item historyLabel="usbd_msc_bot.h" index="6">
-<position info="not_deleted" x="2403" y="0"/>
-</item>
-<item historyLabel="usbd_msc.h" index="1">
-<position info="not_deleted" x="2657" y="0"/>
-</item>
 <item historyLabel="usbd_msc_bot.h" index="2">
 <position info="not_deleted" x="3167" y="0"/>
 </item>
@@ -378,16 +338,16 @@
 <item historyLabel="usbd_msc_bot.h" index="2">
 <position info="not_deleted" x="3116" y="0"/>
 </item>
-<item historyLabel="usbd_msc_bot.h" index="6">
+<item historyLabel="usbd_msc_bot.h" index="5">
 <position info="not_deleted" x="3428" y="0"/>
 </item>
 <item historyLabel="usbd_msc.c" index="0">
 <position info="not_deleted" x="16892" y="0"/>
 </item>
-<item historyLabel="usbd_conf.c" index="7">
+<item historyLabel="usbd_conf.c" index="6">
 <position info="not_deleted" x="19381" y="0"/>
 </item>
-<item historyLabel="usbd_conf.c" index="7">
+<item historyLabel="usbd_conf.c" index="6">
 <position info="not_deleted" x="19793" y="21"/>
 </item>
 <item historyLabel="usbd_msc.c" index="0">
@@ -396,7 +356,7 @@
 <item historyLabel="usbd_msc.h" index="1">
 <position info="not_deleted" x="2657" y="0"/>
 </item>
-<item historyLabel="usbd_msc_bot.h" index="6">
+<item historyLabel="usbd_msc_bot.h" index="5">
 <position info="not_deleted" x="3234" y="0"/>
 </item>
 <item historyLabel="usbd_msc.h" index="1">
@@ -405,25 +365,25 @@
 <item historyLabel="usbd_msc.c" index="0">
 <position info="not_deleted" x="17698" y="0"/>
 </item>
-<item historyLabel="usbd_msc_bot.h" index="6">
+<item historyLabel="usbd_msc_bot.h" index="5">
 <position info="not_deleted" x="3269" y="0"/>
 </item>
 <item historyLabel="usbd_msc.h" index="1">
 <position info="not_deleted" x="2657" y="0"/>
 </item>
-<item historyLabel="usbd_msc_bot.h" index="6">
+<item historyLabel="usbd_msc_bot.h" index="5">
 <position info="not_deleted" x="3269" y="0"/>
 </item>
 <item historyLabel="usbd_msc.c" index="0">
 <position info="not_deleted" x="17795" y="0"/>
 </item>
-<item historyLabel="usbd_conf.c" index="7">
+<item historyLabel="usbd_conf.c" index="6">
 <position info="not_deleted" x="18806" y="22"/>
 </item>
 <item historyLabel="usbd_msc.c" index="0">
 <position info="not_deleted" x="10616" y="19"/>
 </item>
-<item historyLabel="usbd_msc_bot.h" index="6">
+<item historyLabel="usbd_msc_bot.h" index="5">
 <position info="not_deleted" x="3115" y="0"/>
 </item>
 <item historyLabel="usbd_msc.c" index="0">
@@ -432,19 +392,19 @@
 <item historyLabel="usbd_msc.h" index="1">
 <position info="not_deleted" x="2657" y="0"/>
 </item>
-<item historyLabel="usbd_msc_bot.h" index="6">
+<item historyLabel="usbd_msc_bot.h" index="5">
 <position info="not_deleted" x="3152" y="0"/>
 </item>
 <item historyLabel="usbd_msc.c" index="0">
 <position info="not_deleted" x="17551" y="22"/>
 </item>
-<item historyLabel="usbd_conf.c" index="7">
+<item historyLabel="usbd_conf.c" index="6">
 <position info="not_deleted" x="18753" y="0"/>
 </item>
-<item historyLabel="stm32f1xx_hal_pcd.c" index="8">
+<item historyLabel="stm32f1xx_hal_pcd.c" index="7">
 <position info="not_deleted" x="28696" y="0"/>
 </item>
-<item historyLabel="main.c" index="5">
+<item historyLabel="main.c" index="4">
 <position info="not_deleted" x="4830" y="0"/>
 </item>
 <item historyLabel="lcd.c" index="3">
@@ -453,7 +413,7 @@
 <item historyLabel="usbd_msc.c" index="0">
 <position info="not_deleted" x="17255" y="0"/>
 </item>
-<item historyLabel="main.c" index="5">
+<item historyLabel="main.c" index="4">
 <position info="not_deleted" x="4830" y="0"/>
 </item>
 <item historyLabel="lcd.c" index="3">
@@ -462,11 +422,59 @@
 <item historyLabel="usbd_msc.c" index="0">
 <position info="not_deleted" x="11385" y="0"/>
 </item>
-<item historyLabel="usbd_msc_bot.h" index="6">
+<item historyLabel="usbd_msc_bot.h" index="5">
 <position info="not_deleted" x="2995" y="0"/>
 </item>
-<item active="true" historyLabel="usbd_msc.c" index="0">
+<item historyLabel="usbd_msc.c" index="0">
 <position info="not_deleted" x="11385" y="0"/>
+</item>
+<item historyLabel="usbd_msc.h" index="8">
+<position info="not_deleted" x="2657" y="0"/>
+</item>
+<item historyLabel="usbd_msc_bot.h" index="9">
+<position info="not_deleted" x="2995" y="0"/>
+</item>
+<item historyLabel="usbd_msc.h" index="8">
+<position info="not_deleted" x="2836" y="0"/>
+</item>
+<item historyLabel="usbd_msc.h" index="8">
+<position info="not_deleted" x="0" y="0"/>
+</item>
+<item historyLabel="usbd_msc_bot.h" index="10">
+<position info="not_deleted" x="2995" y="0"/>
+</item>
+<item historyLabel="usbd_msc_bot.h" index="10">
+<position info="not_deleted" x="3327" y="0"/>
+</item>
+<item historyLabel="usbd_msc.h" index="8">
+<position info="not_deleted" x="0" y="0"/>
+</item>
+<item historyLabel="usbd_desc.c" index="11">
+<position/>
+</item>
+<item historyLabel="usbd_msc_bot.h" index="10">
+<position info="not_deleted" x="3627" y="0"/>
+</item>
+<item historyLabel="usbd_desc.c" index="11">
+<position/>
+</item>
+<item historyLabel="usbd_msc_bot.h" index="10">
+<position info="not_deleted" x="3627" y="0"/>
+</item>
+<item historyLabel="usbd_desc.c" index="11">
+<position/>
+</item>
+<item historyLabel="usbd_msc_bot.h" index="10">
+<position info="not_deleted" x="3627" y="0"/>
+</item>
+<item historyLabel="usbd_conf.c" index="12">
+<position info="not_deleted" x="18306" y="0"/>
+</item>
+<item historyLabel="usbd_desc.c" index="11">
+<position info="not_deleted" x="0" y="0"/>
+</item>
+<item active="true" historyLabel="usbd_conf.c" index="12">
+<position info="not_deleted" x="18306" y="0"/>
 </item>
 </navigationHistory>
 <input factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/" type="8"/>
@@ -475,6 +483,9 @@
 <actionBarAdvisor/>
 </window>
 <mruList>
+<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="usbd_desc.c" tooltip="coocox_stm32_tft/Src/usbd_desc.c">
+<persistable path="/coocox_stm32_tft/Src/usbd_desc.c"/>
+</file>
 <file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="stm32f1xx_hal_pcd.c" tooltip="coocox_stm32_tft/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_pcd.c">
 <persistable path="/coocox_stm32_tft/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_pcd.c"/>
 </file>
@@ -511,11 +522,8 @@
 <file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="usbd_storage_if.c" tooltip="coocox_stm32_tft/Src/usbd_storage_if.c">
 <persistable path="/coocox_stm32_tft/Src/usbd_storage_if.c"/>
 </file>
-<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="usb_device.c" tooltip="coocox_stm32_tft/Src/usb_device.c">
-<persistable path="/coocox_stm32_tft/Src/usb_device.c"/>
-</file>
-<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="usbd_desc.c" tooltip="coocox_stm32_tft/Src/usbd_desc.c">
-<persistable path="/coocox_stm32_tft/Src/usbd_desc.c"/>
+<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="stm32f1xx_hal_pcd.c" tooltip="coocox_stm32_tft/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_pcd.c">
+<persistable path="/coocox_stm32_tft/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_pcd.c"/>
 </file>
 </mruList>
 </workbench>

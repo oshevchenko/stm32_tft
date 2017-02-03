@@ -87,22 +87,11 @@ typedef struct
 {
   uint32_t                 max_lun;   
   uint32_t                 interface; 
-  uint8_t                  bot_state;
-  uint8_t                  bot_status;  
-  uint16_t                 bot_data_length;
-  uint8_t                  bot_data[MSC_MEDIA_PACKET];  
   USBD_MSC_BOT_CBWTypeDef  cbw;
   USBD_MSC_BOT_CSWTypeDef  csw;
-  
-  USBD_SCSI_SenseTypeDef   scsi_sense [SENSE_LIST_DEEPTH];
-  uint8_t                  scsi_sense_head;
-  uint8_t                  scsi_sense_tail;
-  
-  uint16_t                 scsi_blk_size;
-  uint32_t                 scsi_blk_nbr;
-  
-  uint32_t                 scsi_blk_addr;
-  uint32_t                 scsi_blk_len;
+  uint8_t                  graphics_state;
+  uint32_t                 pixelTotal;
+  uint32_t                 pixelTransfered;
 }
 USBD_MSC_BOT_HandleTypeDef; 
 

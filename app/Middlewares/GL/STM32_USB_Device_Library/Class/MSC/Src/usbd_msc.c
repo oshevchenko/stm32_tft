@@ -42,6 +42,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "usbd_msc.h"
+#include "lcd.h"
 
 
 /** @addtogroup STM32_USB_DEVICE_LIBRARY
@@ -157,10 +158,10 @@ __ALIGN_BEGIN uint8_t USBD_MSC_CfgHSDesc[USB_MSC_CONFIG_DESC_SIZ]  __ALIGN_END =
   0x00,   /* bInterfaceNumber: Number of Interface */
   0x00,   /* bAlternateSetting: Alternate setting */
   0x02,   /* bNumEndpoints*/
-  0x08,   /* bInterfaceClass: MSC Class */
-  0x06,   /* bInterfaceSubClass : SCSI transparent*/
-  0x50,   /* nInterfaceProtocol */
-  0x05,          /* iInterface: */
+  0xFF,   /* bInterfaceClass: MSC Class */
+  0x00,   /* bInterfaceSubClass : SCSI transparent*/
+  0x00,   /* nInterfaceProtocol */
+  0x00,          /* iInterface: */
   /********************  Mass Storage Endpoints ********************/
   0x07,   /*Endpoint descriptor length = 7*/
   0x05,   /*Endpoint descriptor type */
@@ -201,10 +202,10 @@ uint8_t USBD_MSC_CfgFSDesc[USB_MSC_CONFIG_DESC_SIZ]  __ALIGN_END =
   0x00,   /* bInterfaceNumber: Number of Interface */
   0x00,   /* bAlternateSetting: Alternate setting */
   0x02,   /* bNumEndpoints*/
-  0x08,   /* bInterfaceClass: MSC Class */
-  0x06,   /* bInterfaceSubClass : SCSI transparent*/
-  0x50,   /* nInterfaceProtocol */
-  0x05,          /* iInterface: */
+  0xFF,   /* bInterfaceClass: MSC Class */
+  0x00,   /* bInterfaceSubClass : SCSI transparent*/
+  0x00,   /* nInterfaceProtocol */
+  0x00,          /* iInterface: */
   /********************  Mass Storage Endpoints ********************/
   0x07,   /*Endpoint descriptor length = 7*/
   0x05,   /*Endpoint descriptor type */
@@ -243,10 +244,10 @@ __ALIGN_BEGIN uint8_t USBD_MSC_OtherSpeedCfgDesc[USB_MSC_CONFIG_DESC_SIZ]   __AL
   0x00,   /* bInterfaceNumber: Number of Interface */
   0x00,   /* bAlternateSetting: Alternate setting */
   0x02,   /* bNumEndpoints*/
-  0x08,   /* bInterfaceClass: MSC Class */
-  0x06,   /* bInterfaceSubClass : SCSI transparent command set*/
-  0x50,   /* nInterfaceProtocol */
-  0x05,          /* iInterface: */
+  0xFF,   /* bInterfaceClass: MSC Class */
+  0x00,   /* bInterfaceSubClass : SCSI transparent command set*/
+  0x00,   /* nInterfaceProtocol */
+  0x00,          /* iInterface: */
   /********************  Mass Storage Endpoints ********************/
   0x07,   /*Endpoint descriptor length = 7*/
   0x05,   /*Endpoint descriptor type */
@@ -337,7 +338,21 @@ uint8_t  USBD_MSC_Init (USBD_HandleTypeDef *pdev,
   else
   {
     /* Init the BOT  layer */
-    MSC_BOT_Init(pdev); 
+//    MSC_BOT_Init(pdev);
+    USBD_MSC_BOT_HandleTypeDef  *hmsc = (USBD_MSC_BOT_HandleTypeDef*)pdev->pClassData;
+
+
+    ((USBD_StorageTypeDef *)pdev->pUserData)->Init(0);
+
+    USBD_LL_FlushEP(pdev, MSC_EPOUT_ADDR);
+    USBD_LL_FlushEP(pdev, MSC_EPIN_ADDR);
+
+    /* Prapare EP to Receive First BOT Cmd */
+    USBD_LL_PrepareReceive (pdev,
+                            MSC_EPOUT_ADDR,
+                            (uint8_t *)&hmsc->cbw,
+                            USBD_BOT_CBW_LENGTH);
+
     ret = 0;
   }
   
@@ -364,8 +379,10 @@ uint8_t  USBD_MSC_DeInit (USBD_HandleTypeDef *pdev,
   
   
     /* De-Init the BOT layer */
-  MSC_BOT_DeInit(pdev);
-  
+//  MSC_BOT_DeInit(pdev);
+  USBD_MSC_BOT_HandleTypeDef  *hmsc = (USBD_MSC_BOT_HandleTypeDef*)pdev->pClassData;
+
+  hmsc->graphics_state = GRAPH_NOT_ADDRESSED;
   /* Free MSC Class Resources */
   if(pdev->pClassData != NULL)
   {
@@ -415,7 +432,15 @@ uint8_t  USBD_MSC_Setup (USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req)
          (req->wLength == 0) &&
         ((req->bmRequest & 0x80) != 0x80))
       {      
-         MSC_BOT_Reset(pdev);
+//         MSC_BOT_Reset(pdev);
+         USBD_MSC_BOT_HandleTypeDef  *hmsc = (USBD_MSC_BOT_HandleTypeDef*)pdev->pClassData;
+
+         /* Prapare EP to Receive First BOT Cmd */
+         USBD_LL_PrepareReceive (pdev,
+                                 MSC_EPOUT_ADDR,
+                                 (uint8_t *)&hmsc->cbw,
+                                 USBD_BOT_CBW_LENGTH);
+
       }
       else
       {
@@ -490,7 +515,7 @@ uint8_t  USBD_MSC_Setup (USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req)
       }
       
       /* Handle BOT error */
-      MSC_BOT_CplClrFeature(pdev, (uint8_t)req->wIndex);
+//      MSC_BOT_CplClrFeature(pdev, (uint8_t)req->wIndex);
       break;
       
     }  
@@ -512,7 +537,24 @@ uint8_t  USBD_MSC_Setup (USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req)
 uint8_t  USBD_MSC_DataIn (USBD_HandleTypeDef *pdev, 
                               uint8_t epnum)
 {
-  MSC_BOT_DataIn(pdev , epnum);
+  HAL_GPIO_TogglePin(GPIO_LED2_GPIO_Port, GPIO_LED2_Pin);
+  HAL_GPIO_TogglePin(GPIO_LED1_GPIO_Port, GPIO_LED1_Pin);
+
+  USBD_MSC_BOT_HandleTypeDef  *hmsc = (USBD_MSC_BOT_HandleTypeDef*)pdev->pClassData;
+
+  hmsc->csw.bStatus = USBD_CSW_CMD_PASSED;
+
+
+  USBD_LL_Transmit (pdev,
+             MSC_EPIN_ADDR,
+             (uint8_t *)&hmsc->csw,
+             USBD_BOT_CSW_LENGTH);
+
+  /* Prepare EP to Receive next Cmd */
+  USBD_LL_PrepareReceive (pdev,
+                    MSC_EPOUT_ADDR,
+                    (uint8_t *)&hmsc->cbw,
+                    USBD_BOT_CBW_LENGTH);
   return 0;
 }
 
@@ -526,7 +568,59 @@ uint8_t  USBD_MSC_DataIn (USBD_HandleTypeDef *pdev,
 uint8_t  USBD_MSC_DataOut (USBD_HandleTypeDef *pdev, 
                                uint8_t epnum)
 {
-  MSC_BOT_DataOut(pdev , epnum);
+  uint32_t usb_trans_size = 0;
+  uint32_t pixel_number = 0;
+  uint32_t i;
+  uint32_t j;
+
+  HAL_GPIO_TogglePin(GPIO_LED2_GPIO_Port, GPIO_LED2_Pin);
+  HAL_GPIO_TogglePin(GPIO_LED1_GPIO_Port, GPIO_LED1_Pin);
+  USBD_MSC_BOT_HandleTypeDef  *hmsc = (USBD_MSC_BOT_HandleTypeDef*)pdev->pClassData;
+  usb_trans_size = USBD_LL_GetRxDataSize (pdev ,MSC_EPOUT_ADDR);
+  if (GRAPH_NOT_ADDRESSED == hmsc->graphics_state){
+	  if (usb_trans_size <= 8){
+		  /* Prepare EP to Receive next Cmd */
+		  USBD_LL_PrepareReceive (pdev,
+		                    MSC_EPOUT_ADDR,
+		                    (uint8_t *)&hmsc->cbw,
+		                    USBD_BOT_CBW_LENGTH);
+		  goto exit;
+
+	  }
+	  hmsc->graphics_state = TRANSFER_IN_PROGRESS;
+	  LCD_WRITE_REGISTER(CTR_HORZ_ADDRESS,hmsc->cbw.vert); //screen rotated
+	  LCD_WRITE_REGISTER(CTR_VERT_ADDRESS,hmsc->cbw.horz);
+	  hmsc->pixelTotal = hmsc->cbw.pixelTotal;
+	  hmsc->pixelTransfered = 0;
+	  usb_trans_size -= 8;
+  }
+  pixel_number = usb_trans_size >>= 1;
+
+  hmsc->pixelTransfered += pixel_number;
+
+  LCD_BEGIN_RAM_WRITE;
+  for (i = 0; i < pixel_number; i++) {
+	  LCD_WRITE_RAM(hmsc->cbw.CB[i]);
+  }
+
+  if(hmsc->pixelTransfered >= hmsc->pixelTotal) {
+	  hmsc->graphics_state = GRAPH_NOT_ADDRESSED;
+	  /* Prepare EP to Receive next Cmd */
+	  USBD_LL_PrepareReceive (pdev,
+	                    MSC_EPOUT_ADDR,
+	                    (uint8_t *)&hmsc->cbw,
+	                    USBD_BOT_CBW_LENGTH);
+//	  goto exit;
+  } else {
+  /* Prepare EP to Receive next Cmd */
+  USBD_LL_PrepareReceive (pdev,
+                    MSC_EPOUT_ADDR,
+                    (uint8_t *)&hmsc->cbw.CB[0],
+                    USBD_BOT_CBW_LENGTH);
+  }
+
+//  MSC_BOT_DataOut(pdev , epnum);
+exit:
   return 0;
 }
 

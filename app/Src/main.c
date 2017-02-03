@@ -100,8 +100,8 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_RTC_Init();
-  MX_TIM6_Init();
   MX_USB_DEVICE_Init();
+  MX_TIM6_Init();
   MX_FSMC_Init();
 
   /* USER CODE BEGIN 2 */

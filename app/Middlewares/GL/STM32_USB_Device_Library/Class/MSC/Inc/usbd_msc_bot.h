@@ -49,6 +49,9 @@
 /** @defgroup USBD_CORE_Exported_Defines
   * @{
   */ 
+#define GRAPH_NOT_ADDRESSED                0       /* Not addressed state */
+#define TRANSFER_IN_PROGRESS               1       /* Transfer in progress state */
+
 #define USBD_BOT_IDLE                      0       /* Idle state */
 #define USBD_BOT_DATA_OUT                  1       /* Data Out state */
 #define USBD_BOT_DATA_IN                   2       /* Data In state */
@@ -58,7 +61,8 @@
 
 #define USBD_BOT_CBW_SIGNATURE             0x43425355
 #define USBD_BOT_CSW_SIGNATURE             0x53425355
-#define USBD_BOT_CBW_LENGTH                31
+#define USBD_BOT_CBW_LENGTH                64
+//#define USBD_BOT_CBW_LENGTH                512
 #define USBD_BOT_CSW_LENGTH                13
 #define USBD_BOT_MAX_DATA                  256
 
@@ -87,13 +91,10 @@
 
 typedef struct
 {
-  uint32_t dSignature;
-  uint32_t dTag;
-  uint32_t dDataLength;
-  uint8_t  bmFlags;
-  uint8_t  bLUN;
-  uint8_t  bCBLength;
-  uint8_t  CB[16];
+  uint16_t horz;
+  uint16_t  vert;
+  uint32_t  pixelTotal;
+  uint16_t  CB[USBD_BOT_CBW_LENGTH/2];
   uint8_t  ReservedForAlign;
 }
 USBD_MSC_BOT_CBWTypeDef;
