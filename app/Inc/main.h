@@ -59,6 +59,10 @@
 #define GPIO_S2_GPIO_Port GPIOC
 #define GPIO_LCD_RST_Pin GPIO_PIN_1
 #define GPIO_LCD_RST_GPIO_Port GPIOC
+#define TOUCH_IRQ_Pin GPIO_PIN_6
+#define TOUCH_IRQ_GPIO_Port GPIOB
+#define TOUCH_CS_Pin GPIO_PIN_7
+#define TOUCH_CS_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
