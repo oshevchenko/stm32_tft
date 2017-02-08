@@ -1,3 +1,6 @@
+OPENWRT = ${HOME}/workspace/openwrt
+KERNELDIR = ${OPENWRT}/build_dir/target-mips_34kc_musl-1.1.16/linux-ar71xx_generic/linux-4.4.14
+export STAGING_DIR=${OPENWRT}/staging_dir/toolchain-mips_34kc_gcc-5.3.0_musl-1.1.16/bin
 # Comment/uncomment the following line to disable/enable debugging
 DEBUG = y
 obj-m	:= usb-skeleton.o
@@ -12,11 +15,10 @@ endif
 
 EXTRA_CFLAGS += $(DEBFLAGS)
 
-KERNELDIR ?= /lib/modules/$(shell uname -r)/build
 PWD       := $(shell pwd)
 
 all:
-	$(MAKE) -C $(KERNELDIR) M=$(PWD)
+	$(MAKE) -C $(KERNELDIR) ARCH="mips" CC="${OPENWRT}/staging_dir/toolchain-mips_34kc_gcc-5.3.0_musl-1.1.16/bin/mips-openwrt-linux-musl-gcc" LD="${OPENWRT}/staging_dir/toolchain-mips_34kc_gcc-5.3.0_musl-1.1.16/bin/mips-openwrt-linux-musl-ld" M=$(PWD)
 
 clean:
 	rm -rf *.o *~ core .depend .*.cmd *.ko *.mod.c .tmp_versions

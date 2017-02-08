@@ -1,1 +1,0 @@
-cmd_/home/hd62user/workspace/stm32_tft/usb/usb-skeleton.ko := ld -r -m elf_i386 -T /usr/src/linux-headers-3.2.0-4-common/scripts/module-common.lds --build-id  -o /home/hd62user/workspace/stm32_tft/usb/usb-skeleton.ko /home/hd62user/workspace/stm32_tft/usb/usb-skeleton.o /home/hd62user/workspace/stm32_tft/usb/usb-skeleton.mod.o

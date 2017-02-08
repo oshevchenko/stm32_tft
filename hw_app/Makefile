@@ -14,5 +14,5 @@ all:            $(PROGRAMS)
 clean:
 	rm -f *.o *.a $(PROGRAMS)
 
-getopt_long: getopt_long.c readfile.c
+getopt_long: readfile.c getopt_long.c
 

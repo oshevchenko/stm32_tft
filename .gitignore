@@ -3,6 +3,13 @@
 *.ko
 *.obj
 *.elf
+*.o.cmd
+*.ko.cmd
+modules.order
+*.mod
+*.mod.c
+hw_app/getopt_long
+
 
 # Precompiled Headers
 *.gch
