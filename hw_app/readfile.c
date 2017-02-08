@@ -12,9 +12,11 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <errno.h>
+#include <stdint.h>
+#include <string.h>
 
 #define ARRAY_SIZE 10*1024
-#define USB_ARRAY_SIZE 5
+#define USB_ARRAY_SIZE 64
 
 
 char* read_write_file (const char* filename, size_t length)
@@ -100,25 +102,59 @@ char* read_write_file (const char* filename, size_t length)
   free(buffer);
   return NULL;
 }
-
-
-char* write_usb_file (const char* filename, size_t length)
+typedef struct
 {
-  char* buffer;
+  uint16_t horz;
+  uint16_t vert;
+  uint32_t pixelTotal;
+  uint8_t  CB[56];
+  uint8_t  ReservedForAlign;
+}
+USBD_MSC_BOT_CBWTypeDef;
+
+
+#pragma pack(push, 1)
+
+// typedef struct tagBITMAPINFOHEADER
+// {
+//     uint32_t biSize;  //specifies the number of bytes required by the struct
+//     LONG biWidth;  //specifies width in pixels
+//     LONG biHeight;  //species height in pixels
+//     uint16_t biPlanes; //specifies the number of color planes, must be 1
+//     uint16_t biBitCount; //specifies the number of bit per pixel
+//     uint32_t biCompression;//spcifies the type of compression
+//     uint32_t biSizeImage;  //size of image in bytes
+//     LONG biXPelsPerMeter;  //number of pixels per meter in x axis
+//     LONG biYPelsPerMeter;  //number of pixels per meter in y axis
+//     uint32_t biClrUsed;  //number of colors used by th ebitmap
+//     uint32_t biClrImportant;  //number of colors that are important
+// }BITMAPINFOHEADER;
+
+typedef struct tagBITMAPFILEHEADER
+{
+    uint16_t bfType;  //specifies the file type
+    uint32_t bfSize;  //specifies the size in bytes of the bitmap file
+    uint16_t bfReserved1;  //reserved; must be 0
+    uint16_t bfReserved2;  //reserved; must be 0
+    uint32_t bOffBits;  //species the offset in bytes from the bitmapfileheader to the bitmap bits
+}BITMAPFILEHEADER;
+
+#pragma pack(pop)
+
+char* write_usb_file (const char* filename, const char* bmp_filename, size_t length)
+{
+  char* buffer = NULL;
+  char* pPixel = NULL;
+  char* pBufferEnd = NULL;
   int fd; 
-  static int u_random_fd = -1;
+  FILE *fd_bmp = NULL;
   ssize_t bytes_read;
   unsigned random;
   struct pollfd pfds[2];
   unsigned cnt = 0;
-
-  /* Allocate the buffer.  */
-  buffer = (char*) malloc (USB_ARRAY_SIZE);
-  if (buffer == NULL) {
-    printf ("Failed to allocate %d bytes buffer!\n", USB_ARRAY_SIZE);
-    return NULL;
-  }
-
+  unsigned long sz_trans = 0;
+  USBD_MSC_BOT_CBWTypeDef msc_bot;
+  BITMAPFILEHEADER bitmapFileHeader;
   /* Open the file.  */
   fd = open (filename, O_RDWR);
   if (fd == -1) {
@@ -127,33 +163,83 @@ char* write_usb_file (const char* filename, size_t length)
     goto exit;
   }
 
-  if (u_random_fd == -1) {
-    /* Open /dev/urandom.  Note that we're assuming that /dev/random
-       really is a source of random bits, not a file full of zeros
-       placed there by an attacker.  */
-    u_random_fd = open ("/dev/urandom", O_RDONLY);
-    /* If we couldn't open /dev/random, give up.  */
-    if (u_random_fd == -1) {
-      printf ("Open  /dev/random failed!\n");
-      goto exit;
-    }
-  }
-
-  /* Read an integer from /dev/random.  */
-  // printf ("Now read from random!\n");
-  if (read (u_random_fd, buffer, USB_ARRAY_SIZE) != USB_ARRAY_SIZE) {
-    printf ("Error while reading random numbers.\n");
+//  fd_bmp = fopen ("/mnt/hgfs/workspace-hp/photo_shchengen_visa2.bmp", "rb");
+  fd_bmp = fopen (bmp_filename, "rb");  
+  if (fd_bmp == NULL) {
+    printf ("Open bmp failed!\n");
     goto exit;
   }
-    
-  printf ("Now write to USB device to toggle LED ... ");
-  if (write(fd, buffer, USB_ARRAY_SIZE) != USB_ARRAY_SIZE) {
+
+  // printf ("Now read from random!\n");
+  cnt = fread (&bitmapFileHeader, sizeof(BITMAPFILEHEADER),1,fd_bmp);
+  if (cnt != 1) {
+    printf ("Error while reading bmp image header! 0x%04X %d\n", bitmapFileHeader.bfType,cnt);
+    goto exit;
+  }
+
+  //verify that this is a bmp file by check bitmap id
+  if (bitmapFileHeader.bfType !=0x4D42)
+  {
+    printf ("Wrong bmp header!\n");
+    goto exit;
+  }  
+
+  /* Allocate the buffer.  */
+  buffer = (char*) malloc (bitmapFileHeader.bfSize);
+  if (buffer == NULL) {
+    printf ("Failed to allocate %d bytes buffer!\n", bitmapFileHeader.bfSize);
+    return NULL;
+  }
+  fseek(fd_bmp, 0L, SEEK_SET);
+  cnt = fread (buffer, bitmapFileHeader.bfSize,1,fd_bmp);
+  if ( cnt != 1) {
+    printf ("Error while reading bmp image!\n");
+    goto exit;
+  }
+  pPixel = buffer + bitmapFileHeader.bOffBits;
+  pBufferEnd = buffer + bitmapFileHeader.bfSize;
+
+
+  msc_bot.horz = 0;
+  msc_bot.vert = 0;
+  msc_bot.pixelTotal = 320*240;
+  memcpy(&msc_bot.CB[0], pPixel, 56);
+  pPixel+=56;
+
+  printf ("Buffer:\n");
+  for( cnt = 0; cnt < USB_ARRAY_SIZE; cnt++)
+  {
+    printf ("0x%02X ", *((unsigned char*)(((unsigned char*) &msc_bot)) + cnt)) ;
+  }
+  printf ("\n");
+  printf ("Now write to USB device to toggle LED ... \n");
+  if (write(fd, (unsigned char*) &msc_bot, USB_ARRAY_SIZE) != USB_ARRAY_SIZE) {
     printf ("Error: %s.\n", strerror( errno ));
     goto exit;
   }
 
+  while(pPixel < pBufferEnd){
+    sz_trans = pBufferEnd - pPixel;
+//    sz_trans = sz_trans > USB_ARRAY_SIZE ? USB_ARRAY_SIZE : sz_trans;
+    sz_trans = sz_trans > 2048 ? 2048 : sz_trans;
+    if (write(fd, pPixel, sz_trans) != sz_trans) {
+      printf ("Error: %s.\n", strerror( errno ));
+      goto exit;
+    }
+    pPixel+=sz_trans;
+  }
+
+
   printf ("OK!\n");
 exit:
-  free(buffer);
+  if (fd_bmp != NULL) {
+    fclose(fd_bmp);
+  }
+  if (fd != -1) {
+    close(fd);
+  }
+  if (buffer != NULL) {
+    free(buffer);
+  }
   return NULL;
 }

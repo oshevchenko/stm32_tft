@@ -33,12 +33,13 @@ int main (int argc, char* argv[])
   int next_option;
 
   /* A string listing valid short options letters.  */
-  const char* const short_options = "hi:u:v";
+  const char* const short_options = "hi:u:b:v";
   /* An array describing valid long options.  */
   const struct option long_options[] = {
     { "help",     0, NULL, 'h' },
     { "input",    1, NULL, 'i' },
     { "uwrite",    1, NULL, 'u' },
+    { "bmp",    1, NULL, 'b' },
     { "verbose",  0, NULL, 'v' },
     { NULL,       0, NULL, 0   }   /* Required at end of array.  */
   };
@@ -46,6 +47,7 @@ int main (int argc, char* argv[])
   /* The name of the file to receive program output, or NULL for
      standard output.  */
   const char* input_filename = NULL;
+  const char* bmp_filename = NULL;
   /* Whether to display verbose messages.  */
   int verbose = 0;
 
@@ -71,7 +73,11 @@ int main (int argc, char* argv[])
     case 'u':   /**/
       /* This option takes an argument, the name of the output file.  */
       input_filename = optarg;
-      write_usb_file(input_filename, 0);
+      write_usb_file(input_filename, bmp_filename, 0);
+      break;
+    case 'b':   /**/
+      /* This option takes an argument, the name of the output file.  */
+      bmp_filename = optarg;
       break;
 
     case 'v':   /* -v or --verbose */
