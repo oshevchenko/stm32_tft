@@ -38,12 +38,15 @@ static const struct usb_device_id skel_table[] = {
 };
 MODULE_DEVICE_TABLE(usb, skel_table);
 
+static unsigned long start;
+static unsigned long total_time;
 
 /* Get a minor range for your devices from the usb maintainer */
 #define USB_SKEL_MINOR_BASE	192
 
 /* our private defines. if this grows any larger, use your own .h file */
-#define MAX_TRANSFER		(PAGE_SIZE - 512)
+/* #define MAX_TRANSFER		(PAGE_SIZE - 512)*/
+ #define MAX_TRANSFER		(32*1024)
 /* MAX_TRANSFER is chosen so that the VM is not stressed by
    allocations > PAGE_SIZE and the number of packets in a page
    is an integer 512 is the largest possible packet on EHCI */
@@ -377,6 +380,11 @@ static void skel_write_bulk_callback(struct urb *urb)
 	usb_free_coherent(urb->dev, urb->transfer_buffer_length,
 			  urb->transfer_buffer, urb->transfer_dma);
 	up(&dev->limit_sem);
+	/* do some work ... */
+	total_time = jiffies - start;
+//	printk("That took %lu ticks\n", jiffies_to_clock_t(total_time));
+//	printk("That took %lu  %lu ticks\n", total_time, start);
+
 }
 
 static ssize_t skel_write(struct file *file, const char *user_buffer,
@@ -387,7 +395,8 @@ static ssize_t skel_write(struct file *file, const char *user_buffer,
 	struct urb *urb = NULL;
 	char *buf = NULL;
 	size_t writesize = min(count, (size_t)MAX_TRANSFER);
-
+	start = jiffies;
+	printk("skel_write  %lu %lu ticks\n", start, total_time);
 	dev = file->private_data;
 
 	/* verify that we actually have some data to write */

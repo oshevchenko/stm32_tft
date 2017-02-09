@@ -14,6 +14,7 @@
 #include <errno.h>
 #include <stdint.h>
 #include <string.h>
+#include <byteswap.h>
 
 #define ARRAY_SIZE 10*1024
 #define USB_ARRAY_SIZE 64
@@ -107,8 +108,6 @@ typedef struct
   uint16_t horz;
   uint16_t vert;
   uint32_t pixelTotal;
-  uint8_t  CB[56];
-  uint8_t  ReservedForAlign;
 }
 USBD_MSC_BOT_CBWTypeDef;
 
@@ -143,18 +142,22 @@ typedef struct tagBITMAPFILEHEADER
 
 char* write_usb_file (const char* filename, const char* bmp_filename, size_t length)
 {
-  char* buffer = NULL;
-  char* pPixel = NULL;
-  char* pBufferEnd = NULL;
+  uint8_t* buffer = NULL;
+  uint8_t* p_buf = NULL;
+//  char* pBufferEnd = NULL;
   int fd; 
   FILE *fd_bmp = NULL;
   ssize_t bytes_read;
   unsigned random;
   struct pollfd pfds[2];
-  unsigned cnt = 0;
+  unsigned long cnt = 0;
+  unsigned long cnt2 = 0;
+  unsigned long cnt3 = 0;
+  unsigned long buf_size = 0;
   unsigned long sz_trans = 0;
   USBD_MSC_BOT_CBWTypeDef msc_bot;
   BITMAPFILEHEADER bitmapFileHeader;
+  uint32_t pixelTotal = 320*240;
   /* Open the file.  */
   fd = open (filename, O_RDWR);
   if (fd == -1) {
@@ -176,59 +179,88 @@ char* write_usb_file (const char* filename, const char* bmp_filename, size_t len
     printf ("Error while reading bmp image header! 0x%04X %d\n", bitmapFileHeader.bfType,cnt);
     goto exit;
   }
+#if BYTE_ORDER == BIG_ENDIAN
+  bitmapFileHeader.bfType = __bswap_16(bitmapFileHeader.bfType);
+  bitmapFileHeader.bfSize = __bswap_32(bitmapFileHeader.bfSize);
+  bitmapFileHeader.bOffBits = __bswap_32(bitmapFileHeader.bOffBits);
+#elif BYTE_ORDER == LITTLE_ENDIAN
+
+#else
+       # error "What kind of system is this?"
+#endif
 
   //verify that this is a bmp file by check bitmap id
+
   if (bitmapFileHeader.bfType !=0x4D42)
   {
-    printf ("Wrong bmp header!\n");
+    printf ("Wrong bmp header! 0x%04X\n", bitmapFileHeader.bfType);
     goto exit;
   }  
+  printf ("Correct bmp header! 0x%04X\n", bitmapFileHeader.bfType);
+
 
   /* Allocate the buffer.  */
-  buffer = (char*) malloc (bitmapFileHeader.bfSize);
+  buf_size = bitmapFileHeader.bfSize - bitmapFileHeader.bOffBits + sizeof(msc_bot);
+  printf ("buf_size %d bitmapFileHeader.bfSize %d bitmapFileHeader.bOffBits %d\n",buf_size, bitmapFileHeader.bfSize, bitmapFileHeader.bOffBits);
+  buffer = (char*) malloc (buf_size);
   if (buffer == NULL) {
     printf ("Failed to allocate %d bytes buffer!\n", bitmapFileHeader.bfSize);
     return NULL;
   }
-  fseek(fd_bmp, 0L, SEEK_SET);
-  cnt = fread (buffer, bitmapFileHeader.bfSize,1,fd_bmp);
+#if BYTE_ORDER == BIG_ENDIAN
+  msc_bot.horz = __bswap_16(0);
+  msc_bot.vert = __bswap_16(0);
+  msc_bot.pixelTotal = __bswap_32(pixelTotal);
+#elif BYTE_ORDER == LITTLE_ENDIAN
+  msc_bot.horz = 0;
+  msc_bot.vert = 0;
+  msc_bot.pixelTotal = pixelTotal;
+#else
+       # error "What kind of system is this?"
+#endif
+
+  memcpy(buffer, &msc_bot, sizeof(msc_bot));
+  p_buf = buffer + sizeof(msc_bot);
+  printf ("Seek to %d\n", bitmapFileHeader.bOffBits);
+  fseek(fd_bmp, bitmapFileHeader.bOffBits, SEEK_SET);
+  cnt = fread (p_buf, bitmapFileHeader.bfSize - bitmapFileHeader.bOffBits, 1, fd_bmp);
   if ( cnt != 1) {
     printf ("Error while reading bmp image!\n");
     goto exit;
   }
-  pPixel = buffer + bitmapFileHeader.bOffBits;
-  pBufferEnd = buffer + bitmapFileHeader.bfSize;
-
-
-  msc_bot.horz = 0;
-  msc_bot.vert = 0;
-  msc_bot.pixelTotal = 320*240;
-  memcpy(&msc_bot.CB[0], pPixel, 56);
-  pPixel+=56;
-
+#if 0
   printf ("Buffer:\n");
-  for( cnt = 0; cnt < USB_ARRAY_SIZE; cnt++)
+  for (cnt2 = 0; cnt2 <32; cnt2++)
   {
-    printf ("0x%02X ", *((unsigned char*)(((unsigned char*) &msc_bot)) + cnt)) ;
+    for( cnt = 0; cnt < 16; cnt++)
+    {
+      printf ("0x%02X ", buffer[cnt3]);
+      cnt3++;
+    }
+    printf ("\n");
   }
-  printf ("\n");
-  printf ("Now write to USB device to toggle LED ... \n");
-  if (write(fd, (unsigned char*) &msc_bot, USB_ARRAY_SIZE) != USB_ARRAY_SIZE) {
-    printf ("Error: %s.\n", strerror( errno ));
-    goto exit;
-  }
+#endif
+  printf ("Now write to USB device ... \n");
 
-  while(pPixel < pBufferEnd){
-    sz_trans = pBufferEnd - pPixel;
-//    sz_trans = sz_trans > USB_ARRAY_SIZE ? USB_ARRAY_SIZE : sz_trans;
-    sz_trans = sz_trans > 2048 ? 2048 : sz_trans;
-    if (write(fd, pPixel, sz_trans) != sz_trans) {
+  cnt = 0;
+  p_buf = buffer;
+#if 1
+  while(cnt < buf_size){
+    sz_trans = buf_size - cnt;
+    if (sz_trans > 32768) sz_trans = 32768;
+    if (write(fd, p_buf, sz_trans) != sz_trans) {
       printf ("Error: %s.\n", strerror( errno ));
       goto exit;
     }
-    pPixel+=sz_trans;
+    p_buf += sz_trans;
+    cnt += sz_trans;
   }
-
+#else
+    if (write(fd, p_buf, 512) != 512) {
+      printf ("Error: %s.\n", strerror( errno ));
+      goto exit;
+    }
+#endif
 
   printf ("OK!\n");
 exit:
