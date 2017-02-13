@@ -21,6 +21,9 @@ void print_usage (FILE* stream, int exit_code)
   fprintf (stream,
            "  -h  --help             Display this usage information.\n"
            "  -i  --input filename   Read from file.\n"
+           "  -b  --bmp filename     Read bmp image from file.\n"
+           "  -u  --uwrite devname   Write to usb device node.\n"
+           "  -s  --swap             Swap data endianess.\n"
            "  -v  --verbose          Print verbose messages.\n");
   exit (exit_code);
 }
@@ -33,7 +36,7 @@ int main (int argc, char* argv[])
   int next_option;
 
   /* A string listing valid short options letters.  */
-  const char* const short_options = "hi:u:b:v";
+  const char* const short_options = "hi:u:b:vs";
   /* An array describing valid long options.  */
   const struct option long_options[] = {
     { "help",     0, NULL, 'h' },
@@ -41,6 +44,7 @@ int main (int argc, char* argv[])
     { "uwrite",    1, NULL, 'u' },
     { "bmp",    1, NULL, 'b' },
     { "verbose",  0, NULL, 'v' },
+    { "swap",  0, NULL, 's' },
     { NULL,       0, NULL, 0   }   /* Required at end of array.  */
   };
 
@@ -50,6 +54,7 @@ int main (int argc, char* argv[])
   const char* bmp_filename = NULL;
   /* Whether to display verbose messages.  */
   int verbose = 0;
+  int swap_endianess = 0;
 
   /* Remember the name of the program, to incorporate in messages.
      The name is stored in argv[0].  */
@@ -73,11 +78,15 @@ int main (int argc, char* argv[])
     case 'u':   /**/
       /* This option takes an argument, the name of the output file.  */
       input_filename = optarg;
-      write_usb_file(input_filename, bmp_filename, 0);
+      write_usb_file(input_filename, bmp_filename, swap_endianess);
       break;
     case 'b':   /**/
       /* This option takes an argument, the name of the output file.  */
       bmp_filename = optarg;
+      break;
+    case 's':   /**/
+      /* This option takes an argument, the name of the output file.  */
+      swap_endianess = 1;
       break;
 
     case 'v':   /* -v or --verbose */

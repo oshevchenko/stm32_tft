@@ -140,10 +140,11 @@ typedef struct tagBITMAPFILEHEADER
 
 #pragma pack(pop)
 
-char* write_usb_file (const char* filename, const char* bmp_filename, size_t length)
+char* write_usb_file (const char* filename, const char* bmp_filename, int swap)
 {
   uint8_t* buffer = NULL;
   uint8_t* p_buf = NULL;
+  uint16_t* p_buf16 = NULL;
 //  char* pBufferEnd = NULL;
   int fd; 
   FILE *fd_bmp = NULL;
@@ -228,6 +229,14 @@ char* write_usb_file (const char* filename, const char* bmp_filename, size_t len
     printf ("Error while reading bmp image!\n");
     goto exit;
   }
+  if (swap) {
+    p_buf16 =(uint16_t*) (buffer + sizeof(msc_bot));
+    for (cnt = 0; cnt < (bitmapFileHeader.bfSize - bitmapFileHeader.bOffBits)/2; cnt++){
+      *p_buf16 = __bswap_16(*p_buf16);
+      p_buf16++;
+    }
+  }
+
 #if 0
   printf ("Buffer:\n");
   for (cnt2 = 0; cnt2 <32; cnt2++)

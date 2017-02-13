@@ -3,8 +3,10 @@ KERNELDIR = ${OPENWRT}/build_dir/target-mips_34kc_musl-1.1.16/linux-ar71xx_gener
 export STAGING_DIR=${OPENWRT}/staging_dir/toolchain-mips_34kc_gcc-5.3.0_musl-1.1.16/bin
 # Comment/uncomment the following line to disable/enable debugging
 DEBUG = y
-obj-m	:= usb-skeleton.o
-
+#obj-m	:= vfb.o
+#obj-m	:= usb-skeleton.o
+obj-m	:= vfb_lcd.o
+vfb_lcd-objs := usb-vfb.o vfb-core.o
 
 # Add your debugging flag (or not) to EXTRA_CFLAGS
 ifeq ($(DEBUG),y)
