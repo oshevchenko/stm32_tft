@@ -66,17 +66,34 @@
 /** @defgroup USBD_DESC_Private_Defines
   * @{
   */ 
-//
-//#define USBD_VID     1155
-#define USBD_VID     0xfff0
+// Here you can chose one of three possible touch screen devices
+// TOUCH_DEVICE == 0 -> use pointer device
+// TOUCH_DEVICE == 1 -> use single touch device
+// TOUCH_DEVICE == 2 -> use multi  touch device
+#define TOUCH_DEVICE   1
+
+
+
+// PJRC bought the device range 0x0474 - 0x04D7 from VOTI (http://www.voti.nl/pids)
+// The following is not really necessary. But Windows does not read the device descriptor anew if it once has been stored in the Registry.
+// So if you change TOUCH_DEVICE from 0 to 1 or vice versa, Windows will not recognize any change!
+// Without the following lines you would have to erase the device in serveral places from the Registry after changing TOUCH_DEVICE.
+// This is very difficult because only SYSTEM/NT AUTHORITY has the priviliges to delete these keys.
+// Search the Registry (HKLM) for "Vid_16C0&Pid_048"
+#define PRODUCT_ID_KMT   0x048A + 2 * TOUCH_DEVICE // Keyboard/Mouse/Touchscreen
+#define PRODUCT_ID_SKMT  0x048B + 2 * TOUCH_DEVICE // Serial/Keyboard/Mouse/Touchscreen
+
+#define VENDOR_ID             0x16C0
+#define PRODUCT_ID            PRODUCT_ID_KMT
+
+#define USBD_VID     VENDOR_ID
 #define USBD_LANGID_STRING     1033
 #define USBD_MANUFACTURER_STRING     "GlobalLogic"
-//#define USBD_PID_FS     22314
-#define USBD_PID_FS     0xfff0
-#define USBD_PRODUCT_STRING_FS     "usb-skeleton test"
+#define USBD_PID_FS     PRODUCT_ID
+#define USBD_PRODUCT_STRING_FS     "STM32 Touchscreen"
 #define USBD_SERIALNUMBER_STRING_FS     "00000000001A"
-#define USBD_CONFIGURATION_STRING_FS     "usb-skeleton Config"
-#define USBD_INTERFACE_STRING_FS     "usb-skeleton Interface"
+#define USBD_CONFIGURATION_STRING_FS     "HID Config"
+#define USBD_INTERFACE_STRING_FS     "HID Interface"
 
 /* USER CODE BEGIN 0 */
 

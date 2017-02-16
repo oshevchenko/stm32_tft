@@ -80,11 +80,16 @@ static void MX_FSMC_Init(void);
 static void MX_SPI1_Init(void);
 
 /* USER CODE BEGIN PFP */
+
 /* Private function prototypes -----------------------------------------------*/
 
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
+#define min(a,b) ((a)<(b)?(a):(b))
+#define LSB(n) (n & 255)
+#define MSB(n) ((n >> 8) & 255)
+
 //arm-none-eabi-objcopy -O binary "${BuildArtifactFileBaseName}.elf" "${BuildArtifactFileBaseName}.bin" && arm-none-eabi-size "${BuildArtifactFileName}"
 //arm-none-eabi-objcopy -O ihex "${BuildArtifactFileBaseName}.elf" "${BuildArtifactFileBaseName}.hex"
 /* USER CODE END 0 */
@@ -94,6 +99,12 @@ int main(void)
 
   /* USER CODE BEGIN 1 */
 	eq_queue_element_s ev;
+	uint8_t buf[10];
+	uint16_t p = 0;
+	uint16_t cnt = 5;
+	ADS7843_PositionState finger_down = 0;
+	uint16_t usb_mouse_pct_pos_x = 3000;
+	uint16_t usb_mouse_pct_pos_y = 1000;
   /* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
@@ -139,6 +150,26 @@ int main(void)
 //	  TERM_Task();
 	  TIMER_Task();
 	  ADS7843_Task();
+	  if (0 == cnt) {
+		  finger_down = ADS7843_GetPosition(&usb_mouse_pct_pos_x, &usb_mouse_pct_pos_y);
+#if 1
+		  if (finger_down == ST_TOUCH || finger_down == ST_UNTOUCH) {
+	    p = 0;
+        buf[p++] = finger_down == ST_TOUCH ? 1:0;  // bit 0 = Finger up/down, bit 1 = In Range
+//		        finger_down = finger_down ? 0 : 1;
+        buf[p++] = LSB(usb_mouse_pct_pos_x);
+        buf[p++] = MSB(usb_mouse_pct_pos_x);
+        buf[p++] = LSB(usb_mouse_pct_pos_y); // absolute coordinates = percent value * 100 (0 ... 10000)
+        buf[p++] = MSB(usb_mouse_pct_pos_y);
+	  	USBD_HID_SendReport     (&hUsbDeviceFS, buf, p);
+		  }
+//			  	usb_mouse_pct_pos_x += 500;
+//			  	if (usb_mouse_pct_pos_x > 10000) usb_mouse_pct_pos_x = 0;
+//			  	usb_mouse_pct_pos_y += 500;
+//			  	if (usb_mouse_pct_pos_y > 10000) usb_mouse_pct_pos_y = 0;
+#endif
+	  	}
+
 	  do {
 		  EQ_GetEvent(&ev);
 		  switch(ev.event){
@@ -156,6 +187,7 @@ int main(void)
 		  case TIMER1_EXPIRED:
 //			  ADS7843_Start();
 			  HAL_GPIO_TogglePin(GPIO_LED1_GPIO_Port, GPIO_LED1_Pin);
+			  if (cnt) cnt--;
 			  //HAL_GPIO_TogglePin(GPIO_LED2_GPIO_Port, GPIO_LED2_Pin);
 			  break;
 		  default:
