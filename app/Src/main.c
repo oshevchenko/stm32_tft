@@ -153,16 +153,16 @@ int main(void)
 	  if (0 == cnt) {
 		  finger_down = ADS7843_GetPosition(&usb_mouse_pct_pos_x, &usb_mouse_pct_pos_y);
 #if 1
-		  if (finger_down == ST_TOUCH || finger_down == ST_UNTOUCH) {
+
 	    p = 0;
-        buf[p++] = finger_down == ST_TOUCH ? 1:0;  // bit 0 = Finger up/down, bit 1 = In Range
+        buf[p++] = finger_down == ST_TOUCH ? 3:0;  // bit 0 = Finger up/down, bit 1 = In Range
 //		        finger_down = finger_down ? 0 : 1;
         buf[p++] = LSB(usb_mouse_pct_pos_x);
         buf[p++] = MSB(usb_mouse_pct_pos_x);
         buf[p++] = LSB(usb_mouse_pct_pos_y); // absolute coordinates = percent value * 100 (0 ... 10000)
         buf[p++] = MSB(usb_mouse_pct_pos_y);
 	  	USBD_HID_SendReport     (&hUsbDeviceFS, buf, p);
-		  }
+
 //			  	usb_mouse_pct_pos_x += 500;
 //			  	if (usb_mouse_pct_pos_x > 10000) usb_mouse_pct_pos_x = 0;
 //			  	usb_mouse_pct_pos_y += 500;
@@ -306,7 +306,7 @@ static void MX_SPI1_Init(void)
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_64;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
