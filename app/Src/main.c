@@ -51,6 +51,10 @@
 #include "timer.h"
 #include "lcd.h"
 #include "ads7843.h"
+#include "usbd_hid.h"
+#include "usbd_desc.h"
+#include "usbd_ctlreq.h"
+
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -98,13 +102,14 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
+	USBD_HID_HandleTypeDef     *hhid;
 	eq_queue_element_s ev;
 	uint8_t buf[10];
 	uint16_t p = 0;
-	uint16_t cnt = 5;
-	ADS7843_PositionState finger_down = 0;
+	uint16_t cnt = 10000;
+	ADS7843_PositionState adc_state = 0;
 	uint16_t usb_mouse_pct_pos_x = 3000;
-	uint16_t usb_mouse_pct_pos_y = 1000;
+	uint16_t usb_mouse_pct_pos_y = 4000;
   /* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
@@ -145,31 +150,23 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  hhid = (USBD_HID_HandleTypeDef*)hUsbDeviceFS.pClassData;
   while (1)
   {
 //	  TERM_Task();
 	  TIMER_Task();
 	  ADS7843_Task();
-	  if (0 == cnt) {
-		  finger_down = ADS7843_GetPosition(&usb_mouse_pct_pos_x, &usb_mouse_pct_pos_y);
-#if 1
-
-	    p = 0;
-        buf[p++] = finger_down == ST_TOUCH ? 3:0;  // bit 0 = Finger up/down, bit 1 = In Range
-//		        finger_down = finger_down ? 0 : 1;
-        buf[p++] = LSB(usb_mouse_pct_pos_x);
-        buf[p++] = MSB(usb_mouse_pct_pos_x);
-        buf[p++] = LSB(usb_mouse_pct_pos_y); // absolute coordinates = percent value * 100 (0 ... 10000)
-        buf[p++] = MSB(usb_mouse_pct_pos_y);
-	  	USBD_HID_SendReport     (&hUsbDeviceFS, buf, p);
-
-//			  	usb_mouse_pct_pos_x += 500;
-//			  	if (usb_mouse_pct_pos_x > 10000) usb_mouse_pct_pos_x = 0;
-//			  	usb_mouse_pct_pos_y += 500;
-//			  	if (usb_mouse_pct_pos_y > 10000) usb_mouse_pct_pos_y = 0;
-#endif
-	  	}
-
+	  if ((hUsbDeviceFS.dev_state == USBD_STATE_CONFIGURED )&& (hhid->state == HID_IDLE))
+	  {
+		  adc_state = ADS7843_GetPosition(&usb_mouse_pct_pos_x, &usb_mouse_pct_pos_y);
+		  p = 0;
+		  buf[p++] = adc_state == ST_TOUCH ? 3:0;  // bit 0 = Finger up/down, bit 1 = In Range
+		  buf[p++] = LSB(usb_mouse_pct_pos_x);
+		  buf[p++] = MSB(usb_mouse_pct_pos_x);
+		  buf[p++] = LSB(usb_mouse_pct_pos_y); // absolute coordinates = percent value * 100 (0 ... 10000)
+		  buf[p++] = MSB(usb_mouse_pct_pos_y);
+		  USBD_HID_SendReport(&hUsbDeviceFS, buf, p);
+	  }
 	  do {
 		  EQ_GetEvent(&ev);
 		  switch(ev.event){
@@ -186,8 +183,8 @@ int main(void)
 			  break;
 		  case TIMER1_EXPIRED:
 //			  ADS7843_Start();
-			  HAL_GPIO_TogglePin(GPIO_LED1_GPIO_Port, GPIO_LED1_Pin);
-			  if (cnt) cnt--;
+//			  HAL_GPIO_TogglePin(GPIO_LED1_GPIO_Port, GPIO_LED1_Pin);
+
 			  //HAL_GPIO_TogglePin(GPIO_LED2_GPIO_Port, GPIO_LED2_Pin);
 			  break;
 		  default:

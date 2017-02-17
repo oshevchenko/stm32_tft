@@ -12,4 +12,5 @@ typedef enum PositionState_TAG {
 } ADS7843_PositionState;
 
 ADS7843_PositionState ADS7843_GetPosition(uint16_t* p_pos_x, uint16_t* p_pos_y);
+void ADS7843_Debug(uint8_t start, uint8_t inc);
 #endif
