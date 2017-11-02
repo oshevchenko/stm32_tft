@@ -8,7 +8,8 @@ typedef enum QUEUE_EVENT_TAG {
 	CMD_WIDTH,
 	CMD_OFFSET,
 	CMD_HV_ON,
-	CMD_HV_OFF
+	CMD_HV_OFF,
+	CMD_GET_ENC
 } eq_queue_event_e;
 
 typedef union QUEUE_PARAM_TAG {

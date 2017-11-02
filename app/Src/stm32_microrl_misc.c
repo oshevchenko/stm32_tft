@@ -8,12 +8,20 @@
 #include "src/microrl.h"
 #include "stm32_microrl_misc.h"
 #include "event_queue.h"
+#include "pid_regulator.h"
 
 extern void USBD_CDC_TxAlways(const uint8_t *buf, uint32_t len);
 static microrl_t rl;
 static microrl_t * prl = &rl;
 static unsigned curr_cmd_param;
-static enum {COMMAND_EMPTY, COMMAND_WIDTH, COMMAND_OFFSET, COMMAND_HV_ON, COMMAND_HV_OFF} curr_cmd = COMMAND_EMPTY;
+static enum {
+	COMMAND_EMPTY,
+	COMMAND_WIDTH,
+	COMMAND_OFFSET,
+	COMMAND_HV_ON,
+	COMMAND_HV_OFF,
+	COMMAND_GET_ENC
+} curr_cmd = COMMAND_EMPTY;
 
 //*****************************************************************************
 //dummy function, no need on linux-PC
@@ -59,16 +67,17 @@ void print (const char * str)
 #define _CMD_WIDTH "width"
 #define _CMD_OFFSET "offset"
 #define _CMD_HV  "hv" //
+#define _CMD_ENC  "enc" //
 // sub commands for HV command
 	#define _SCMD_SWITCH_ON  "on"
 	#define _SCMD_SWITCH_OFF "off"
 
-#define _NUM_OF_CMD 8
+#define _NUM_OF_CMD 9
 #define _NUM_OF_VER_SCMD 2
 #define _NUM_OF_SWITCH_SCMD 2
 
 //available  commands
-static char * keyworld [] = {_CMD_HELP, _CMD_CLEAR, _CMD_LIST, _CMD_NAME, _CMD_VER, _CMD_HV};
+static char * keyworld [] = {_CMD_HELP, _CMD_CLEAR, _CMD_LIST, _CMD_NAME, _CMD_VER, _CMD_HV, _CMD_ENC};
 // version subcommands
 static char * ver_keyworld [] = {_SCMD_MRL, _SCMD_DEMO};
 static char * switch_keyworld [] = {_SCMD_SWITCH_ON, _SCMD_SWITCH_OFF};
@@ -105,7 +114,9 @@ void print_help ()
 // do what you want here, but don't write to argv!!! read only!!
 int execute (int argc, const char * const * argv)
 {
+	char cmd_buf[20];
 	int i = 0;
+	unsigned U1, U2;
 	// just iterate through argv word and compare it with your commands
 	while (i < argc) {
 		if (strcmp (argv[i], _CMD_HELP) == 0) {
@@ -178,6 +189,11 @@ int execute (int argc, const char * const * argv)
 			} else {
 				print ("version needs 1 parametr, see help\n\r");
 			}
+		} else if (strcmp (argv[i], _CMD_ENC) == 0) {
+			curr_cmd = COMMAND_GET_ENC;
+			GetEnc(&U1, &U2);
+			snprintf (cmd_buf, 20, "x=%05d y=%05d\n\r", U1, U2);
+			print (cmd_buf);
 		} else {
 			print ("command: '");
 			print ((char*)argv[i]);
@@ -261,6 +277,11 @@ void TERM_Task(void)
 	case COMMAND_HV_OFF:
 		EQ_PutEvent(CMD_HV_OFF);
 		break;
+	case COMMAND_GET_ENC:
+		EQ_PutEvent(CMD_GET_ENC);
+		break;
+
+
 	}
 	curr_cmd = COMMAND_EMPTY;
 }
