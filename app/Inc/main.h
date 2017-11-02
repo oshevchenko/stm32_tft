@@ -57,8 +57,8 @@
 #define GPIO_LED2_GPIO_Port GPIOE
 #define GPIO_S2_Pin GPIO_PIN_0
 #define GPIO_S2_GPIO_Port GPIOC
-#define GPIO_LCD_RST_Pin GPIO_PIN_1
-#define GPIO_LCD_RST_GPIO_Port GPIOC
+#define GPIO_S3_Pin GPIO_PIN_1
+#define GPIO_S3_GPIO_Port GPIOC
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

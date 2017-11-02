@@ -208,7 +208,7 @@ void USB_LP_CAN1_RX0_IRQHandler(void)
 void TIM6_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM6_IRQn 0 */
-//	CDC_Task();
+	CDC_Task();
 	TIMER_Tick();
   /* USER CODE END TIM6_IRQn 0 */
   HAL_TIM_IRQHandler(&htim6);
