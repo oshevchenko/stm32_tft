@@ -50,6 +50,7 @@
 #include "event_queue.h"
 #include "timer.h"
 #include "pid_regulator.h"
+#include "stm32_dsp.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -57,6 +58,7 @@ RTC_HandleTypeDef hrtc;
 
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim3;
+TIM_HandleTypeDef htim4;
 TIM_HandleTypeDef htim6;
 
 /* USER CODE BEGIN PV */
@@ -72,6 +74,10 @@ static void MX_RTC_Init(void);
 static void MX_TIM6_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_TIM3_Init(void);
+static void MX_TIM4_Init(void);
+
+void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
+                                
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
@@ -106,6 +112,7 @@ int main(void)
   MX_TIM6_Init();
   MX_TIM1_Init();
   MX_TIM3_Init();
+  MX_TIM4_Init();
 
   /* USER CODE BEGIN 2 */
   init();
@@ -115,6 +122,8 @@ int main(void)
   TIMER_StartAuto(1, 300);
   HAL_TIM_Encoder_Start(&htim1,TIM_CHANNEL_ALL);
   HAL_TIM_Encoder_Start(&htim3,TIM_CHANNEL_ALL);
+  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
+  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_4);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -123,10 +132,10 @@ int main(void)
   {
 	  TERM_Task();
 	  TIMER_Task();
-	  enc_x = TIM1->CNT;
-	  enc_y = TIM3->CNT;
-
-	  SetEnc(enc_x, enc_y);
+//	  enc_x = TIM1->CNT;
+//	  enc_y = TIM3->CNT;
+//
+//	  SetEnc(enc_x, enc_y);
 	  do {
 		  EQ_GetEvent(&ev);
 		  switch(ev.event){
@@ -137,11 +146,16 @@ int main(void)
 		  	  break;
 		  case CMD_HV_ON:
 			  HAL_GPIO_WritePin(GPIO_LED2_GPIO_Port, GPIO_LED2_Pin, GPIO_PIN_RESET);
+              TIM4->CCR3=65535;
+              TIM4->CCR4=65535;
 			  break;
 		  case CMD_HV_OFF:
 			  HAL_GPIO_WritePin(GPIO_LED2_GPIO_Port, GPIO_LED2_Pin, GPIO_PIN_SET);
+              TIM4->CCR3=5;
+              TIM4->CCR4=5;
 			  break;
 		  case TIMER1_EXPIRED:
+			  PidRun(0, 0);
 			  HAL_GPIO_TogglePin(GPIO_LED1_GPIO_Port, GPIO_LED1_Pin);
 			  break;
 		  case CMD_GET_ENC:
@@ -268,11 +282,11 @@ static void MX_TIM1_Init(void)
   sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
   sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
   sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
-  sConfig.IC1Filter = 5;
+  sConfig.IC1Filter = 0;
   sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
   sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
   sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
-  sConfig.IC2Filter = 5;
+  sConfig.IC2Filter = 0;
   if (HAL_TIM_Encoder_Init(&htim1, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -303,11 +317,11 @@ static void MX_TIM3_Init(void)
   sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
   sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
   sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
-  sConfig.IC1Filter = 5;
+  sConfig.IC1Filter = 0;
   sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
   sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
   sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
-  sConfig.IC2Filter = 5;
+  sConfig.IC2Filter = 0;
   if (HAL_TIM_Encoder_Init(&htim3, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -319,6 +333,60 @@ static void MX_TIM3_Init(void)
   {
     Error_Handler();
   }
+
+}
+
+/* TIM4 init function */
+static void MX_TIM4_Init(void)
+{
+
+  TIM_ClockConfigTypeDef sClockSourceConfig;
+  TIM_MasterConfigTypeDef sMasterConfig;
+  TIM_OC_InitTypeDef sConfigOC;
+
+  htim4.Instance = TIM4;
+  htim4.Init.Prescaler = 0;
+  htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim4.Init.Period = 65535;
+  htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  if (HAL_TIM_Base_Init(&htim4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim4, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  if (HAL_TIM_PWM_Init(&htim4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim4, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  HAL_TIM_MspPostInit(&htim4);
 
 }
 
@@ -362,6 +430,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOE_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOE, GPIO_LED1_Pin|GPIO_LED2_Pin, GPIO_PIN_RESET);
@@ -381,6 +450,29 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+uint16_t TIMER_HAL_GetEncoder_X()
+{
+	uint16_t enc_x;
+	enc_x = TIM1->CNT;
+	return enc_x;
+}
+
+uint16_t TIMER_HAL_GetEncoder_Y()
+{
+	uint16_t enc_y;
+	enc_y = TIM3->CNT;
+	return enc_y;
+}
+
+void TIMER_HAL_SetMotor_X(PID_OUT* p)
+{
+	TIM4->CCR3 = p->Out;
+}
+
+void TIMER_HAL_SetMotor_Y(PID_OUT* p)
+{
+	TIM4->CCR4 = p->Out;
+}
 
 /* USER CODE END 4 */
 

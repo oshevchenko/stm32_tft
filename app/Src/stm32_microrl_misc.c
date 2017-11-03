@@ -8,6 +8,7 @@
 #include "src/microrl.h"
 #include "stm32_microrl_misc.h"
 #include "event_queue.h"
+#include "stm32_dsp.h"
 #include "pid_regulator.h"
 
 extern void USBD_CDC_TxAlways(const uint8_t *buf, uint32_t len);
@@ -20,7 +21,8 @@ static enum {
 	COMMAND_OFFSET,
 	COMMAND_HV_ON,
 	COMMAND_HV_OFF,
-	COMMAND_GET_ENC
+	COMMAND_GET_ENC,
+	COMMAND_UPDATE_COEFFS
 } curr_cmd = COMMAND_EMPTY;
 
 //*****************************************************************************
@@ -68,11 +70,21 @@ void print (const char * str)
 #define _CMD_OFFSET "offset"
 #define _CMD_HV  "hv" //
 #define _CMD_ENC  "enc" //
+#define _CMD_K  "k" //
+#define _CMD_KP  "kp" //
+#define _CMD_KI  "ki" //
+#define _CMD_KD  "kd" //
 // sub commands for HV command
 	#define _SCMD_SWITCH_ON  "on"
 	#define _SCMD_SWITCH_OFF "off"
 
-#define _NUM_OF_CMD 9
+// sub commands for PID coefs command
+#define _SCMD_DIR_X  "x"
+#define _SCMD_DIR_Y  "y"
+
+
+
+#define _NUM_OF_CMD 13
 #define _NUM_OF_VER_SCMD 2
 #define _NUM_OF_SWITCH_SCMD 2
 
@@ -108,13 +120,113 @@ void print_help ()
 	print ("\twidth {width} - set pulse width, us\n\r");
 	print ("\thv {on | off}- +300V power supply on off\n\r");
 }
+#define PID_COEFS_LEN 50
+void PrintPidCoefs()
+{
+	PID_COEFS PidCoefs;
+	char cmd_buf[PID_COEFS_LEN];
+	GetPidCoefs_X(&PidCoefs);
+	snprintf (cmd_buf, PID_COEFS_LEN, "Kp=%d Ki=%d Kd=%d\n\r",
+			PidCoefs.Kp, PidCoefs.Ki, PidCoefs.Kd);
+	print (cmd_buf);
+}
 
+#define PID_STAT_LEN 50
+void PrintPidStat()
+{
+	PID_REG_STAT PidStat;
+	char cmd_buf[PID_STAT_LEN];
+	GetPidStat(&PidStat);
+	snprintf (cmd_buf, PID_STAT_LEN, "x=%05d y=%05d sx=%05d sy=%05d\n\r",
+									  PidStat.enc_x, PidStat.enc_y,
+									  PidStat.speed_x, PidStat.speed_y);
+	print (cmd_buf);
+}
+
+void SetKp_X(uint16_t param)
+{
+	PID_COEFS PidCoefs;
+	GetPidCoefs_X(&PidCoefs);
+	PidCoefs.Kp = param;
+	SetPidCoefs_X(&PidCoefs);
+}
+
+void SetKi_X(uint16_t param)
+{
+	PID_COEFS PidCoefs;
+	GetPidCoefs_X(&PidCoefs);
+	PidCoefs.Ki = param;
+	SetPidCoefs_X(&PidCoefs);
+}
+
+void SetKd_X(uint16_t param)
+{
+	PID_COEFS PidCoefs;
+	GetPidCoefs_X(&PidCoefs);
+	PidCoefs.Kd = param;
+	SetPidCoefs_X(&PidCoefs);
+}
+
+void SetKp_Y(uint16_t param)
+{
+	PID_COEFS PidCoefs;
+	GetPidCoefs_Y(&PidCoefs);
+	PidCoefs.Kp = param;
+	SetPidCoefs_Y(&PidCoefs);
+}
+
+void SetKi_Y(uint16_t param)
+{
+	PID_COEFS PidCoefs;
+	GetPidCoefs_Y(&PidCoefs);
+	PidCoefs.Ki = param;
+	SetPidCoefs_Y(&PidCoefs);
+}
+
+void SetKd_Y(uint16_t param)
+{
+	PID_COEFS PidCoefs;
+	GetPidCoefs_Y(&PidCoefs);
+	PidCoefs.Kd = param;
+	SetPidCoefs_Y(&PidCoefs);
+}
+static const char STR_NEED_MORE_PARAMETERS[] = "need more parameters, see help\n\r";
+static const char STR_WRONG_ARGUMENT[] = "wrong argument, see help\n\r";
+#define PARSE_PID_COEF(SET_FUNCTION_NAME_X, SET_FUNCTION_NAME_Y) ({\
+		if (++i < argc) {                                        \
+			if (strcmp (argv[i], _SCMD_DIR_X) == 0) {            \
+				if (++i < argc) {                                \
+					char* endptr;                                \
+					curr_cmd_param = strtol(argv[i],&endptr,10); \
+					(SET_FUNCTION_NAME_X)(curr_cmd_param);         \
+					curr_cmd = COMMAND_UPDATE_COEFFS;            \
+					print ("\n\r");                              \
+				} else {                                         \
+					print (STR_NEED_MORE_PARAMETERS);\
+				}                                                \
+			} else if (strcmp (argv[i], _SCMD_DIR_Y) == 0) {     \
+				if (++i < argc) {                                \
+					char* endptr;                                \
+					curr_cmd_param = strtol(argv[i],&endptr,10); \
+					(SET_FUNCTION_NAME_Y)(curr_cmd_param);         \
+					curr_cmd = COMMAND_UPDATE_COEFFS;            \
+					print ("\n\r");                              \
+				} else {                                         \
+					print (STR_NEED_MORE_PARAMETERS);\
+				}                                                \
+			} else {                                             \
+				print (STR_WRONG_ARGUMENT);         \
+			}                                                    \
+		} else {                                                 \
+			print (STR_NEED_MORE_PARAMETERS);        \
+		}                                                        \
+})
 //*****************************************************************************
 // execute callback for microrl library
 // do what you want here, but don't write to argv!!! read only!!
+
 int execute (int argc, const char * const * argv)
 {
-	char cmd_buf[20];
 	int i = 0;
 	unsigned U1, U2;
 	// just iterate through argv word and compare it with your commands
@@ -144,7 +256,7 @@ int execute (int argc, const char * const * argv)
 					print (" wrong argument, see help\n\r");
 				}
 			} else {
-				print ("version needs 1 parametr, see help\n\r");
+				print (STR_NEED_MORE_PARAMETERS);
 			}
 		} else if (strcmp (argv[i], _CMD_CLEAR) == 0) {
 			print ("\033[2J");    // ESC seq for clear entire screen
@@ -163,7 +275,7 @@ int execute (int argc, const char * const * argv)
 				curr_cmd = COMMAND_WIDTH;
 				print ("\n\r");
 			} else {
-				print ("width needs 1 parametr, see help\n\r");
+				print (STR_NEED_MORE_PARAMETERS);
 			}
 		} else if (strcmp (argv[i], _CMD_OFFSET) == 0) {
 			if (++i < argc) {
@@ -172,7 +284,7 @@ int execute (int argc, const char * const * argv)
 				curr_cmd = COMMAND_OFFSET;
 				print ("\n\r");
 			} else {
-				print ("offset needs 1 parametr, see help\n\r");
+				print (STR_NEED_MORE_PARAMETERS);
 			}
 		} else if (strcmp (argv[i], _CMD_HV) == 0) {
 			if (++i < argc) {
@@ -184,16 +296,22 @@ int execute (int argc, const char * const * argv)
 					print ("\n\r");
 				} else {
 					print ((char*)argv[i]);
-					print (" wrong argument, see help\n\r");
+					print (STR_WRONG_ARGUMENT);
 				}
 			} else {
-				print ("version needs 1 parametr, see help\n\r");
+				print (STR_NEED_MORE_PARAMETERS);
 			}
 		} else if (strcmp (argv[i], _CMD_ENC) == 0) {
 			curr_cmd = COMMAND_GET_ENC;
-			GetEnc(&U1, &U2);
-			snprintf (cmd_buf, 20, "x=%05d y=%05d\n\r", U1, U2);
-			print (cmd_buf);
+			PrintPidStat();
+		} else if (strcmp (argv[i], _CMD_K) == 0) {
+			PrintPidCoefs();
+		} else if (strcmp (argv[i], _CMD_KP) == 0) {
+			PARSE_PID_COEF(SetKp_X, SetKp_Y);
+		} else if (strcmp (argv[i], _CMD_KI) == 0) {
+			PARSE_PID_COEF(SetKi_X, SetKi_Y);
+		} else if (strcmp (argv[i], _CMD_KD) == 0) {
+			PARSE_PID_COEF(SetKd_X, SetKd_Y);
 		} else {
 			print ("command: '");
 			print ((char*)argv[i]);
