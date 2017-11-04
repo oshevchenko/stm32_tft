@@ -14,13 +14,14 @@
 extern void USBD_CDC_TxAlways(const uint8_t *buf, uint32_t len);
 static microrl_t rl;
 static microrl_t * prl = &rl;
-static unsigned curr_cmd_param;
+static unsigned ui_curr_cmd_param;
+static int i_curr_cmd_param;
 static enum {
 	COMMAND_EMPTY,
 	COMMAND_WIDTH,
-	COMMAND_OFFSET,
-	COMMAND_HV_ON,
-	COMMAND_HV_OFF,
+	COMMAND_SPEED,
+	COMMAND_STAB_ON,
+	COMMAND_STAB_OFF,
 	COMMAND_GET_ENC,
 	COMMAND_UPDATE_COEFFS
 } curr_cmd = COMMAND_EMPTY;
@@ -67,8 +68,8 @@ void print (const char * str)
 	#define _SCMD_MRL  "microrl"
 	#define _SCMD_DEMO "demo"
 #define _CMD_WIDTH "width"
-#define _CMD_OFFSET "offset"
-#define _CMD_HV  "hv" //
+#define _CMD_SPEED "speed"
+#define _CMD_STAB  "stab" //
 #define _CMD_ENC  "enc" //
 #define _CMD_K  "k" //
 #define _CMD_KP  "kp" //
@@ -89,7 +90,7 @@ void print (const char * str)
 #define _NUM_OF_SWITCH_SCMD 2
 
 //available  commands
-static char * keyworld [] = {_CMD_HELP, _CMD_CLEAR, _CMD_LIST, _CMD_NAME, _CMD_VER, _CMD_HV, _CMD_ENC};
+static char * keyworld [] = {_CMD_HELP, _CMD_CLEAR, _CMD_LIST, _CMD_NAME, _CMD_VER, _CMD_STAB, _CMD_ENC};
 // version subcommands
 static char * ver_keyworld [] = {_SCMD_MRL, _SCMD_DEMO};
 static char * switch_keyworld [] = {_SCMD_SWITCH_ON, _SCMD_SWITCH_OFF};
@@ -197,8 +198,8 @@ static const char STR_WRONG_ARGUMENT[] = "wrong argument, see help\n\r";
 			if (strcmp (argv[i], _SCMD_DIR_X) == 0) {            \
 				if (++i < argc) {                                \
 					char* endptr;                                \
-					curr_cmd_param = strtol(argv[i],&endptr,10); \
-					(SET_FUNCTION_NAME_X)(curr_cmd_param);         \
+					ui_curr_cmd_param = strtol(argv[i],&endptr,10); \
+					(SET_FUNCTION_NAME_X)(ui_curr_cmd_param);         \
 					curr_cmd = COMMAND_UPDATE_COEFFS;            \
 					print ("\n\r");                              \
 				} else {                                         \
@@ -207,8 +208,8 @@ static const char STR_WRONG_ARGUMENT[] = "wrong argument, see help\n\r";
 			} else if (strcmp (argv[i], _SCMD_DIR_Y) == 0) {     \
 				if (++i < argc) {                                \
 					char* endptr;                                \
-					curr_cmd_param = strtol(argv[i],&endptr,10); \
-					(SET_FUNCTION_NAME_Y)(curr_cmd_param);         \
+					ui_curr_cmd_param = strtol(argv[i],&endptr,10); \
+					(SET_FUNCTION_NAME_Y)(ui_curr_cmd_param);         \
 					curr_cmd = COMMAND_UPDATE_COEFFS;            \
 					print ("\n\r");                              \
 				} else {                                         \
@@ -271,28 +272,28 @@ int execute (int argc, const char * const * argv)
 		} else if (strcmp (argv[i], _CMD_WIDTH) == 0) {
 			if (++i < argc) {
 				char* endptr;
-				curr_cmd_param = strtol(argv[i],&endptr,10);
+				ui_curr_cmd_param = strtol(argv[i],&endptr,10);
 				curr_cmd = COMMAND_WIDTH;
 				print ("\n\r");
 			} else {
 				print (STR_NEED_MORE_PARAMETERS);
 			}
-		} else if (strcmp (argv[i], _CMD_OFFSET) == 0) {
+		} else if (strcmp (argv[i], _CMD_SPEED) == 0) {
 			if (++i < argc) {
 				char* endptr;
-				curr_cmd_param = strtol(argv[i],&endptr,10);
-				curr_cmd = COMMAND_OFFSET;
+				i_curr_cmd_param = strtol(argv[i],&endptr,10);
+				curr_cmd = COMMAND_SPEED;
 				print ("\n\r");
 			} else {
 				print (STR_NEED_MORE_PARAMETERS);
 			}
-		} else if (strcmp (argv[i], _CMD_HV) == 0) {
+		} else if (strcmp (argv[i], _CMD_STAB) == 0) {
 			if (++i < argc) {
 				if (strcmp (argv[i], _SCMD_SWITCH_ON) == 0) {
-					curr_cmd = COMMAND_HV_ON;
+					curr_cmd = COMMAND_STAB_ON;
 					print ("\n\r");
 				} else if (strcmp (argv[i], _SCMD_SWITCH_OFF) == 0) {
-					curr_cmd = COMMAND_HV_OFF;
+					curr_cmd = COMMAND_STAB_OFF;
 					print ("\n\r");
 				} else {
 					print ((char*)argv[i]);
@@ -350,7 +351,7 @@ char ** complet (int argc, const char * const * argv)
 				compl_world [j++] = ver_keyworld [i];
 			}
 		}
-	} else if ((argc > 1) && (strcmp (argv[0], _CMD_HV)==0)) { // if command needs subcommands
+	} else if ((argc > 1) && (strcmp (argv[0], _CMD_STAB)==0)) { // if command needs subcommands
 		// iterate through subcommand for command _CMD_SWITCH array
 		for (int i = 0; i < _NUM_OF_SWITCH_SCMD; i++) {
 			if (strstr (switch_keyworld [i], argv [argc-1]) == switch_keyworld [i]) {
@@ -382,18 +383,18 @@ void TERM_Task(void)
 
 	switch (curr_cmd){
 	case COMMAND_WIDTH:
-		param.uiParam = curr_cmd_param;
+		param.uiParam = ui_curr_cmd_param;
 		EQ_PutEventParam(CMD_WIDTH, param);
 		break;
-	case COMMAND_OFFSET:
-		param.uiParam = curr_cmd_param;
-		EQ_PutEventParam(CMD_OFFSET, param);
+	case COMMAND_SPEED:
+		param.iParam = i_curr_cmd_param;
+		EQ_PutEventParam(CMD_SPEED, param);
 		break;
-	case COMMAND_HV_ON:
-		EQ_PutEvent(CMD_HV_ON);
+	case COMMAND_STAB_ON:
+		EQ_PutEvent(CMD_STAB_ON);
 		break;
-	case COMMAND_HV_OFF:
-		EQ_PutEvent(CMD_HV_OFF);
+	case COMMAND_STAB_OFF:
+		EQ_PutEvent(CMD_STAB_OFF);
 		break;
 	case COMMAND_GET_ENC:
 		EQ_PutEvent(CMD_GET_ENC);

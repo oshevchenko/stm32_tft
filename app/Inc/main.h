@@ -59,6 +59,10 @@
 #define GPIO_S2_GPIO_Port GPIOC
 #define GPIO_S3_Pin GPIO_PIN_1
 #define GPIO_S3_GPIO_Port GPIOC
+#define GPIO_DIR_X_Pin GPIO_PIN_0
+#define GPIO_DIR_X_GPIO_Port GPIOD
+#define GPIO_DIR_Y_Pin GPIO_PIN_1
+#define GPIO_DIR_Y_GPIO_Port GPIOD
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

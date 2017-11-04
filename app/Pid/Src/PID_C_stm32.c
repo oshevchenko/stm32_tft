@@ -40,7 +40,11 @@ static int32_t IntTerm_C = 0;
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 
-
+void ResetPID()
+{
+	PrevError_C = 0;
+	IntTerm_C = 0;
+}
 
 /**
   * @brief  PID in C, Error computed outside the routine
@@ -48,8 +52,14 @@ static int32_t IntTerm_C = 0;
   *   Coeff: pointer to the coefficient table
   * @retval : PID output (command)
   */
-int DoPID(int16_t Error, PID_COEFS *c, PID_OUT* p)
+#define DEBUG_BUF_LEN 40
+
+int DoPID(int16_t Error, PID_COEFS *c, int32_t *pOut)
 {
+	char cmd_buf[DEBUG_BUF_LEN] = {0,};
+
+	int32_t sum_k;
+	int32_t sum_d;
   int32_t Output;
   int32_t Buf;
   int result = 0;
@@ -67,32 +77,30 @@ int DoPID(int16_t Error, PID_COEFS *c, PID_OUT* p)
   }
 
   Output = Error;
-  Output *= c->Kp;
+  Output *= (int32_t)c->Kp;
+  sum_k = Output;
   Output += IntTerm_C;
 
   //  Output += Kd * (Error - PrevError_C);
   Buf = (int32_t) Error;
   Buf -= (int32_t) PrevError_C;
-  Buf *= c->Kd;
-  Output += Buf;
-
   PrevError_C = Error;
+  Buf *= (int32_t)c->Kd;
+  sum_d = Buf;
+  Output -= Buf;
 
-  if (Output > 65535) {
-	  Output = 65535;
+  snprintf (cmd_buf, DEBUG_BUF_LEN, "sum_k=%d sum_d=%d\n\r",
+			sum_k, sum_d);
+	print (cmd_buf);
+
+  if (Output > 32767) {
+	  Output = 32767;
 	  result |= 0x02;
-  }  else if (Output < -65535) {
-	  Output = -65535;
+  }  else if (Output < -32767) {
+	  Output = -32767;
 	  result |= 0x02;
   }
-
-  if (Output < 0) {
-	  p->Dir=1;
-	  p->Out = (uint16_t) (-Output);
-  } else {
-	  p->Dir=0;
-	  p->Out = (uint16_t) (Output);
-  }
+  *pOut = Output;
 
   return (result);
 }

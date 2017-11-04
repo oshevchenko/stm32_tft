@@ -85,6 +85,10 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
+typedef enum STATE_MACHINE_TAG {
+	MANUAL = 0,
+	AUTO
+} state_machine_e;
 //arm-none-eabi-objcopy -O binary "${BuildArtifactFileBaseName}.elf" "${BuildArtifactFileBaseName}.bin" && arm-none-eabi-size "${BuildArtifactFileName}"
 //arm-none-eabi-objcopy -O ihex "${BuildArtifactFileBaseName}.elf" "${BuildArtifactFileBaseName}.hex"
 /* USER CODE END 0 */
@@ -95,6 +99,10 @@ int main(void)
   /* USER CODE BEGIN 1 */
 	unsigned enc_x, enc_y;
 	eq_queue_element_s ev;
+	PID_OUT pid_out;
+	state_machine_e sm = MANUAL;
+	int16_t speed_x;
+	int16_t speed_y;
   /* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
@@ -119,7 +127,7 @@ int main(void)
   HAL_TIM_Base_Start_IT(&htim6);
   HAL_GPIO_WritePin(GPIO_LED1_GPIO_Port, GPIO_LED1_Pin, GPIO_PIN_SET);
   HAL_GPIO_WritePin(GPIO_LED2_GPIO_Port, GPIO_LED2_Pin, GPIO_PIN_SET);
-  TIMER_StartAuto(1, 300);
+  TIMER_StartAuto(1, 150);
   HAL_TIM_Encoder_Start(&htim1,TIM_CHANNEL_ALL);
   HAL_TIM_Encoder_Start(&htim3,TIM_CHANNEL_ALL);
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
@@ -144,19 +152,51 @@ int main(void)
 		  case CMD_WIDTH:
 		  	  TIMER_StartAuto(1, ev.param.uiParam);
 		  	  break;
-		  case CMD_HV_ON:
-			  HAL_GPIO_WritePin(GPIO_LED2_GPIO_Port, GPIO_LED2_Pin, GPIO_PIN_RESET);
-              TIM4->CCR3=65535;
-              TIM4->CCR4=65535;
+		  case CMD_SPEED:
+			  if (sm == MANUAL) {
+				  if (ev.param.iParam >= 0) pid_out.Dir = 0;
+				  else {
+					  pid_out.Dir = 1;
+					  ev.param.iParam = -ev.param.iParam;
+				  }
+				  if (ev.param.iParam > 100) ev.param.iParam = 100;
+				  pid_out.Out = (uint16_t) ev.param.iParam;
+				  pid_out.Out *= 655;
+				  TIMER_HAL_SetMotor_X(&pid_out);
+				  pid_out.Out = 0;
+				  pid_out.Dir = 0;
+
+				  TIMER_HAL_SetMotor_Y(&pid_out);
+			  } else {
+				  speed_x = ev.param.iParam;
+				  speed_y = ev.param.iParam;
+			  }
 			  break;
-		  case CMD_HV_OFF:
-			  HAL_GPIO_WritePin(GPIO_LED2_GPIO_Port, GPIO_LED2_Pin, GPIO_PIN_SET);
-              TIM4->CCR3=5;
-              TIM4->CCR4=5;
+		  case CMD_STAB_ON:
+			  sm = AUTO;
+			  PidReset();
+			  speed_x = 0;
+			  speed_y = 0;
+//			  HAL_GPIO_WritePin(GPIO_LED2_GPIO_Port, GPIO_LED2_Pin, GPIO_PIN_RESET);
+//              TIM4->CCR3=65535;
+//              TIM4->CCR4=65535;
+			  break;
+		  case CMD_STAB_OFF:
+			  sm = MANUAL;
+			  pid_out.Out = 0;
+			  pid_out.Dir = 0;
+			  TIMER_HAL_SetMotor_X(&pid_out);
+			  TIMER_HAL_SetMotor_Y(&pid_out);
+
+//			  HAL_GPIO_WritePin(GPIO_LED2_GPIO_Port, GPIO_LED2_Pin, GPIO_PIN_SET);
+//              TIM4->CCR3=5;
+//              TIM4->CCR4=5;
 			  break;
 		  case TIMER1_EXPIRED:
-			  PidRun(0, 0);
-			  HAL_GPIO_TogglePin(GPIO_LED1_GPIO_Port, GPIO_LED1_Pin);
+		  	  if (sm == AUTO) {
+				  PidRun(speed_x, speed_y);
+				  HAL_GPIO_TogglePin(GPIO_LED1_GPIO_Port, GPIO_LED1_Pin);
+		  	  }
 			  break;
 		  case CMD_GET_ENC:
 			  break;
@@ -435,6 +475,9 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOE, GPIO_LED1_Pin|GPIO_LED2_Pin, GPIO_PIN_RESET);
 
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOD, GPIO_DIR_X_Pin|GPIO_DIR_Y_Pin, GPIO_PIN_RESET);
+
   /*Configure GPIO pins : GPIO_LED1_Pin GPIO_LED2_Pin */
   GPIO_InitStruct.Pin = GPIO_LED1_Pin|GPIO_LED2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -447,30 +490,48 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
+  /*Configure GPIO pins : GPIO_DIR_X_Pin GPIO_DIR_Y_Pin */
+  GPIO_InitStruct.Pin = GPIO_DIR_X_Pin|GPIO_DIR_Y_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
 }
 
 /* USER CODE BEGIN 4 */
 uint16_t TIMER_HAL_GetEncoder_X()
 {
 	uint16_t enc_x;
-	enc_x = TIM1->CNT;
+	enc_x = TIM3->CNT;
 	return enc_x;
 }
 
 uint16_t TIMER_HAL_GetEncoder_Y()
 {
 	uint16_t enc_y;
-	enc_y = TIM3->CNT;
+	enc_y = TIM1->CNT;
 	return enc_y;
 }
 
 void TIMER_HAL_SetMotor_X(PID_OUT* p)
 {
+	if (p->Dir) {
+		HAL_GPIO_WritePin(GPIO_DIR_X_GPIO_Port, GPIO_DIR_X_Pin, GPIO_PIN_SET);
+	} else {
+		HAL_GPIO_WritePin(GPIO_DIR_X_GPIO_Port, GPIO_DIR_X_Pin, GPIO_PIN_RESET);
+	}
+
 	TIM4->CCR3 = p->Out;
+
 }
 
 void TIMER_HAL_SetMotor_Y(PID_OUT* p)
 {
+	if (p->Dir) {
+		HAL_GPIO_WritePin(GPIO_DIR_Y_GPIO_Port, GPIO_DIR_Y_Pin, GPIO_PIN_SET);
+	} else {
+		HAL_GPIO_WritePin(GPIO_DIR_Y_GPIO_Port, GPIO_DIR_Y_Pin, GPIO_PIN_RESET);
+	}
 	TIM4->CCR4 = p->Out;
 }
 

@@ -52,8 +52,9 @@ typedef struct {
 /* FIR 16-bit filter in assembly */
 void fir_16by16_stm32(void *y, void *x, COEFS *c, uint32_t N);
 
+void ResetPID();
 /* PID controller in C, error computed outside the function */
-int DoPID(int16_t Error, PID_COEFS *c, PID_OUT* p);
+int DoPID(int16_t Error, PID_COEFS *c, int32_t *pOut);
 
 /* Full PID in C, error computed inside the function */
 uint16_t DoFullPID(uint16_t In, uint16_t Ref, uint16_t *Coeff);
