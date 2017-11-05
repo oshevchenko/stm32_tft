@@ -29,15 +29,13 @@
 
 /* Exported types ------------------------------------------------------------*/
 /* for block FIR module */
-typedef struct {
-  uint16_t *h;
-  uint32_t nh;
-} COEFS;
 
 typedef struct {
   uint16_t Kp;
   uint16_t Ki;
   uint16_t Kd;
+  int16_t PrevError;
+  int32_t Int;
 } PID_COEFS;
 
 typedef struct {
@@ -49,33 +47,10 @@ typedef struct {
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
 
-/* FIR 16-bit filter in assembly */
-void fir_16by16_stm32(void *y, void *x, COEFS *c, uint32_t N);
 
-void ResetPID();
+void ResetPID(PID_COEFS *c);
 /* PID controller in C, error computed outside the function */
-int DoPID(int16_t Error, PID_COEFS *c, int32_t *pOut);
-
-/* Full PID in C, error computed inside the function */
-uint16_t DoFullPID(uint16_t In, uint16_t Ref, uint16_t *Coeff);
-
-/* PID controller in assembly, error computed outside the function */
-uint16_t PID_stm32(uint16_t Error, uint16_t *Coeff);
-
-/* Radix-4 complex FFT for STM32, in assembly  */
-/* 64 points*/
-void cr4_fft_64_stm32(void *pssOUT, void *pssIN, uint16_t Nbin);
-/* 256 points */
-void cr4_fft_256_stm32(void *pssOUT, void *pssIN, uint16_t Nbin);
-/* 1024 points */
-void cr4_fft_1024_stm32(void *pssOUT, void *pssIN, uint16_t Nbin);
-
-/* IIR filter in assembly */
-void iirarma_stm32(void *y, void *x, uint16_t *h2, uint16_t *h1, uint32_t ny );
-
-/* IIR filter in C */
-void iir_biquad_stm32(uint16_t *y, uint16_t *x, int16_t *IIRCoeff, uint16_t ny);
+int DoPID(int16_t Error, PID_COEFS *c, int16_t *pOut);
 
 #endif /* __STM32F10x_DSP_H */
 
-/******************* (C) COPYRIGHT 2009 STMicroelectronics *****END OF FILE****/

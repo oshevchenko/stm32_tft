@@ -51,6 +51,7 @@
 #include "timer.h"
 #include "pid_regulator.h"
 #include "stm32_dsp.h"
+#include "main_hal.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -97,12 +98,13 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-	unsigned enc_x, enc_y;
 	eq_queue_element_s ev;
 	PID_OUT pid_out;
 	state_machine_e sm = MANUAL;
 	int16_t speed_x;
 	int16_t speed_y;
+	int8_t speed_x_s, speed_y_s;
+	uint8_t cnt = 0;
   /* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
@@ -127,7 +129,7 @@ int main(void)
   HAL_TIM_Base_Start_IT(&htim6);
   HAL_GPIO_WritePin(GPIO_LED1_GPIO_Port, GPIO_LED1_Pin, GPIO_PIN_SET);
   HAL_GPIO_WritePin(GPIO_LED2_GPIO_Port, GPIO_LED2_Pin, GPIO_PIN_SET);
-  TIMER_StartAuto(1, 150);
+  TIMER_StartAuto(1, 75);
   HAL_TIM_Encoder_Start(&htim1,TIM_CHANNEL_ALL);
   HAL_TIM_Encoder_Start(&htim3,TIM_CHANNEL_ALL);
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
@@ -153,23 +155,35 @@ int main(void)
 		  	  TIMER_StartAuto(1, ev.param.uiParam);
 		  	  break;
 		  case CMD_SPEED:
+
+			  speed_x_s = (int8_t)(ev.param.uiParam & 0xFF);
+			  ev.param.uiParam >>= 8;
+			  speed_y_s = (int8_t)(ev.param.uiParam & 0xFF);
+
 			  if (sm == MANUAL) {
-				  if (ev.param.iParam >= 0) pid_out.Dir = 0;
+				  if (speed_x_s >= 0) pid_out.Dir = 0;
 				  else {
 					  pid_out.Dir = 1;
-					  ev.param.iParam = -ev.param.iParam;
+					  speed_x_s = -speed_x_s;
 				  }
-				  if (ev.param.iParam > 100) ev.param.iParam = 100;
-				  pid_out.Out = (uint16_t) ev.param.iParam;
+				  if (speed_x_s > 100) speed_x_s = 100;
+				  pid_out.Out = (uint16_t) speed_x_s;
 				  pid_out.Out *= 655;
 				  TIMER_HAL_SetMotor_X(&pid_out);
-				  pid_out.Out = 0;
-				  pid_out.Dir = 0;
 
+				  if (speed_y_s >= 0) pid_out.Dir = 0;
+				  else {
+					  pid_out.Dir = 1;
+					  speed_y_s = -speed_y_s;
+				  }
+				  if (speed_y_s > 100) speed_y_s = 100;
+				  pid_out.Out = (uint16_t) speed_y_s;
+				  pid_out.Out *= 655;
 				  TIMER_HAL_SetMotor_Y(&pid_out);
+
 			  } else {
-				  speed_x = ev.param.iParam;
-				  speed_y = ev.param.iParam;
+				  speed_x = speed_x_s;
+				  speed_y = speed_y_s;
 			  }
 			  break;
 		  case CMD_STAB_ON:
@@ -193,6 +207,12 @@ int main(void)
 //              TIM4->CCR4=5;
 			  break;
 		  case TIMER1_EXPIRED:
+			  if (cnt < 20) {
+				  cnt++;
+			  } else {
+					HAL_GPIO_WritePin(GPIO_USB_DP_GPIO_Port, GPIO_USB_DP_Pin, GPIO_PIN_SET);
+			  }
+			  PidSensors();
 		  	  if (sm == AUTO) {
 				  PidRun(speed_x, speed_y);
 				  HAL_GPIO_TogglePin(GPIO_LED1_GPIO_Port, GPIO_LED1_Pin);
@@ -476,7 +496,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOE, GPIO_LED1_Pin|GPIO_LED2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOD, GPIO_DIR_X_Pin|GPIO_DIR_Y_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOD, GPIO_DIR_X_Pin|GPIO_DIR_Y_Pin|GPIO_USB_DP_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : GPIO_LED1_Pin GPIO_LED2_Pin */
   GPIO_InitStruct.Pin = GPIO_LED1_Pin|GPIO_LED2_Pin;
@@ -495,6 +515,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : GPIO_USB_DP_Pin */
+  GPIO_InitStruct.Pin = GPIO_USB_DP_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIO_USB_DP_GPIO_Port, &GPIO_InitStruct);
 
 }
 

@@ -63,6 +63,8 @@
 #define GPIO_DIR_X_GPIO_Port GPIOD
 #define GPIO_DIR_Y_Pin GPIO_PIN_1
 #define GPIO_DIR_Y_GPIO_Port GPIOD
+#define GPIO_USB_DP_Pin GPIO_PIN_2
+#define GPIO_USB_DP_GPIO_Port GPIOD
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

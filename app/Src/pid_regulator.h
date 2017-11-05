@@ -11,9 +11,10 @@ typedef struct {
 void SetEnc(unsigned x, unsigned y);
 void GetPidStat(PID_REG_STAT *pStat);
 void PidRun(int16_t speed_x_s, int16_t speed_y_s);
+void PidSensors();
 void GetPidCoefs_X(PID_COEFS *pCoefs);
 void GetPidCoefs_Y(PID_COEFS *pCoefs);
 void SetPidCoefs_X(PID_COEFS *pCoefs);
 void SetPidCoefs_Y(PID_COEFS *pCoefs);
-
+void PidReset();
 #endif

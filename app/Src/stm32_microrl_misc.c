@@ -15,7 +15,7 @@ extern void USBD_CDC_TxAlways(const uint8_t *buf, uint32_t len);
 static microrl_t rl;
 static microrl_t * prl = &rl;
 static unsigned ui_curr_cmd_param;
-static int i_curr_cmd_param;
+//static int i_curr_cmd_param;
 static enum {
 	COMMAND_EMPTY,
 	COMMAND_WIDTH,
@@ -76,12 +76,12 @@ void print (const char * str)
 #define _CMD_KI  "ki" //
 #define _CMD_KD  "kd" //
 // sub commands for HV command
-	#define _SCMD_SWITCH_ON  "on"
-	#define _SCMD_SWITCH_OFF "off"
+#define _SCMD_SWITCH_ON  "on"
+#define _SCMD_SWITCH_OFF "off"
 
 // sub commands for PID coefs command
-#define _SCMD_DIR_X  "x"
-#define _SCMD_DIR_Y  "y"
+#define _SCMD_DIR_X  "l"
+#define _SCMD_DIR_Y  "r"
 
 
 
@@ -109,7 +109,8 @@ int val;
 void print_help ()
 {
 	print ("--------------------------------------\n\r");
-	print ("--       EMAT Thickness Meter       --\n\r");
+	print ("-- Traffic Signs Recognition (TSR)  --\n\r");
+	print ("--     Proof-of-Concept project     --\n\r");
 	print ("--------------------------------------\n\r");
 	print ("Use TAB key for completion\n\rCommand:\n\r");
 	print ("\tversion {microrl | demo} - print version of microrl lib or version of this demo src\n\r");
@@ -117,9 +118,13 @@ void print_help ()
 	print ("\tclear - clear screen\n\r");
 	print ("\tlist  - list all commands in tree\n\r");
 	print ("\tname [string] - print 'name' value if no 'string', set name value to 'string' if 'string' present\n\r");
-	print ("\toffset {offset} - set pulse offset, us\n\r");
-	print ("\twidth {width} - set pulse width, us\n\r");
-	print ("\thv {on | off}- +300V power supply on off\n\r");
+	print ("\tstab { on | off } - enable | disable motor speed PID regulator\n\r");
+	print ("\tspeed {left right} - set motor speed.\n\r");
+	print ("\tenc - get encoder statistics\n\r");
+	print ("\tk - get PID regulators coeffs.\n\r");
+	print ("\tkp { l | r } {val} - set P coeff. for left | right PID regulator.\n\r");
+	print ("\tki { l | r } {val} - set i coeff. for left | right PID regulator.\n\r");
+	print ("\tkd { l | r } {val} - set D coeff. for left | right PID regulator.\n\r");
 }
 #define PID_COEFS_LEN 50
 void PrintPidCoefs()
@@ -127,7 +132,11 @@ void PrintPidCoefs()
 	PID_COEFS PidCoefs;
 	char cmd_buf[PID_COEFS_LEN];
 	GetPidCoefs_X(&PidCoefs);
-	snprintf (cmd_buf, PID_COEFS_LEN, "Kp=%d Ki=%d Kd=%d\n\r",
+	snprintf (cmd_buf, PID_COEFS_LEN, "L: Kp=%d Ki=%d Kd=%d\n\r",
+			PidCoefs.Kp, PidCoefs.Ki, PidCoefs.Kd);
+	print (cmd_buf);
+	GetPidCoefs_Y(&PidCoefs);
+	snprintf (cmd_buf, PID_COEFS_LEN, "R: Kp=%d Ki=%d Kd=%d\n\r",
 			PidCoefs.Kp, PidCoefs.Ki, PidCoefs.Kd);
 	print (cmd_buf);
 }
@@ -138,7 +147,7 @@ void PrintPidStat()
 	PID_REG_STAT PidStat;
 	char cmd_buf[PID_STAT_LEN];
 	GetPidStat(&PidStat);
-	snprintf (cmd_buf, PID_STAT_LEN, "x=%05d y=%05d sx=%05d sy=%05d\n\r",
+	snprintf (cmd_buf, PID_STAT_LEN, "L=%05d R=%05d SL=%05d SR=%05d\n\r",
 									  PidStat.enc_x, PidStat.enc_y,
 									  PidStat.speed_x, PidStat.speed_y);
 	print (cmd_buf);
@@ -229,7 +238,7 @@ static const char STR_WRONG_ARGUMENT[] = "wrong argument, see help\n\r";
 int execute (int argc, const char * const * argv)
 {
 	int i = 0;
-	unsigned U1, U2;
+
 	// just iterate through argv word and compare it with your commands
 	while (i < argc) {
 		if (strcmp (argv[i], _CMD_HELP) == 0) {
@@ -281,7 +290,14 @@ int execute (int argc, const char * const * argv)
 		} else if (strcmp (argv[i], _CMD_SPEED) == 0) {
 			if (++i < argc) {
 				char* endptr;
-				i_curr_cmd_param = strtol(argv[i],&endptr,10);
+				int16_t speed;
+				speed = strtol(argv[i],&endptr,10);
+				ui_curr_cmd_param = ((speed << 8) & 0xFF00) | (speed & 0xFF);
+				if (++i < argc) {
+					speed = strtol(argv[i],&endptr,10);
+					ui_curr_cmd_param &= 0x00FF;
+					ui_curr_cmd_param |= ((speed << 8) & 0xFF00);
+				}
 				curr_cmd = COMMAND_SPEED;
 				print ("\n\r");
 			} else {
@@ -381,13 +397,15 @@ void TERM_Task(void)
 {
 	eq_queue_param_u param;
 
+	if (curr_cmd == COMMAND_EMPTY) goto exit;
+
 	switch (curr_cmd){
 	case COMMAND_WIDTH:
 		param.uiParam = ui_curr_cmd_param;
 		EQ_PutEventParam(CMD_WIDTH, param);
 		break;
 	case COMMAND_SPEED:
-		param.iParam = i_curr_cmd_param;
+		param.uiParam = ui_curr_cmd_param;
 		EQ_PutEventParam(CMD_SPEED, param);
 		break;
 	case COMMAND_STAB_ON:
@@ -399,10 +417,13 @@ void TERM_Task(void)
 	case COMMAND_GET_ENC:
 		EQ_PutEvent(CMD_GET_ENC);
 		break;
-
-
+	default:
+		break;
 	}
 	curr_cmd = COMMAND_EMPTY;
+
+exit:
+	return;
 }
 
 
