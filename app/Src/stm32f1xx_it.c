@@ -238,6 +238,7 @@ void TIM4_IRQHandler(void)
 void TIM8_CC_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM8_CC_IRQn 0 */
+	SPEED_RightTick();
   /* USER CODE END TIM8_CC_IRQn 0 */
   HAL_TIM_IRQHandler(&htim8);
   /* USER CODE BEGIN TIM8_CC_IRQn 1 */
