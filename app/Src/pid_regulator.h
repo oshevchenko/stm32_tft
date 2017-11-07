@@ -8,13 +8,20 @@ typedef struct {
   int16_t speed_y;
 } PID_REG_STAT;
 
+typedef enum PID_REG_EVENT {
+	PID_REG_EV_TIMEOUT,
+	PID_REG_EV_SPEED_L,
+	PID_REG_EV_SPEED_R,
+} pid_reg_e;
+
 void SetEnc(unsigned x, unsigned y);
 void GetPidStat(PID_REG_STAT *pStat);
 void PidRun(int16_t speed_x_s, int16_t speed_y_s);
-void PidSensors();
 void GetPidCoefs_X(PID_COEFS *pCoefs);
 void GetPidCoefs_Y(PID_COEFS *pCoefs);
 void SetPidCoefs_X(PID_COEFS *pCoefs);
 void SetPidCoefs_Y(PID_COEFS *pCoefs);
 void PidReset();
+void PidPrintStat();
+void PidIdle();
 #endif

@@ -10,6 +10,7 @@
 #include "event_queue.h"
 #include "stm32_dsp.h"
 #include "pid_regulator.h"
+#include "list.h"
 
 extern void USBD_CDC_TxAlways(const uint8_t *buf, uint32_t len);
 static microrl_t rl;
@@ -26,6 +27,7 @@ static enum {
 	COMMAND_UPDATE_COEFFS
 } curr_cmd = COMMAND_EMPTY;
 
+static LIST_HEAD(stat_list);
 //*****************************************************************************
 //dummy function, no need on linux-PC
 void init (void){
@@ -151,6 +153,14 @@ void PrintPidStat()
 									  PidStat.enc_x, PidStat.enc_y,
 									  PidStat.speed_x, PidStat.speed_y);
 	print (cmd_buf);
+}
+
+void print_statistics()
+{
+	struct stat_module *i = NULL;
+	list_for_each_entry(i, &stat_list, list) {
+		i->printStatFunc();
+	}
 }
 
 void SetKp_X(uint16_t param)
@@ -319,8 +329,9 @@ int execute (int argc, const char * const * argv)
 				print (STR_NEED_MORE_PARAMETERS);
 			}
 		} else if (strcmp (argv[i], _CMD_ENC) == 0) {
+			print_statistics();
 			curr_cmd = COMMAND_GET_ENC;
-			PrintPidStat();
+//			PrintPidStat();
 		} else if (strcmp (argv[i], _CMD_K) == 0) {
 			PrintPidCoefs();
 		} else if (strcmp (argv[i], _CMD_KP) == 0) {
@@ -391,6 +402,11 @@ char ** complet (int argc, const char * const * argv)
 void sigint (void)
 {
 	print ("^C catched!\n\r");
+}
+
+void TERM_RegisterPrintStatCallback(struct stat_module *obj)
+{
+	list_add(&obj->list, &stat_list);
 }
 
 void TERM_Task(void)

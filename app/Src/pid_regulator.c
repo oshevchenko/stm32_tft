@@ -1,10 +1,12 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
 #include "stm32_dsp.h"
 #include "main_hal.h"
 #include "pid_regulator.h"
+#include "speedometer.h"
 
 static uint16_t encoder_x_1 = 0;
 static uint16_t encoder_y_1 = 0;
@@ -42,25 +44,34 @@ void GetPidStat(PID_REG_STAT *pStat)
 	pStat->speed_x = speed_x_m;
 	pStat->speed_y = speed_y_m;
 }
+
+#define PID_STAT_LEN 50
+void PidPrintStat()
+{
+	uint16_t encoder_l;
+	uint16_t encoder_r;
+	PID_REG_STAT PidStat;
+	char cmd_buf[PID_STAT_LEN];
+	GetPidStat(&PidStat);
+	snprintf (cmd_buf, PID_STAT_LEN, "L=%05d R=%05d SL=%05d SR=%05d\n\r",
+									  PidStat.enc_x, PidStat.enc_y,
+									  PidStat.speed_x, PidStat.speed_y);
+	print (cmd_buf);
+	encoder_l = TIMER_HAL_GetEncoder_X();
+	encoder_r = TIMER_HAL_GetEncoder_Y();
+
+	snprintf (cmd_buf, PID_STAT_LEN, "enc_l=%05d enc_r=%05d\n\r",
+			encoder_l, encoder_r);
+	print (cmd_buf);
+}
+
 #define DEBUG_BUF_LEN 50
 void PidReset()
 {
 	ResetPID(&pid_coefs_x);
 	ResetPID(&pid_coefs_y);
 }
-void PidSensors()
-{
-	uint16_t encoder;
-	encoder = TIMER_HAL_GetEncoder_X();
-	speed_x_m  = (int16_t) encoder;
-	speed_x_m -= (int16_t) encoder_x_1;
-	encoder_x_1 = encoder;
-	encoder = TIMER_HAL_GetEncoder_Y();
-	speed_y_m  = (int16_t) encoder;
-	speed_y_m -= (int16_t) encoder_y_1;
-	encoder_y_1 = encoder;
 
-}
 void pid_output_correction(int16_t i_pid_out, PID_OUT *p_pid_out)
 {
 	if (i_pid_out < 0) {
@@ -74,6 +85,10 @@ void pid_output_correction(int16_t i_pid_out, PID_OUT *p_pid_out)
 	if (p_pid_out->Out > 60000) p_pid_out->Out = 60000;
 	p_pid_out->Out += 5000;
 }
+void PidIdle()
+{
+	SPEED_GetSpeed(&speed_x_m, &speed_y_m);
+}
 
 void PidRun(int16_t speed_x_s, int16_t speed_y_s)
 {
@@ -83,7 +98,7 @@ void PidRun(int16_t speed_x_s, int16_t speed_y_s)
 	int16_t speed_y_e = 0;
 	int16_t i_pid_out;
 
-
+	SPEED_GetSpeed(&speed_x_m, &speed_y_m);
 	speed_x_e = speed_x_s - speed_x_m;
 	//	Kp=300 Ki=20 Kd=100
 	DoPID(speed_x_e, &pid_coefs_x, &i_pid_out);

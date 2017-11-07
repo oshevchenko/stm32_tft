@@ -1,11 +1,17 @@
 #ifndef _STM32_MICRORL_MISC_H_
 #define _STM32_MICRORL_MISC_H_
-
+#include "list.h"
 /*
 Platform independent interface for implementing some specific function
 for AVR, linux PC or ARM
 */
+typedef struct stat_module
+{
+        struct list_head list;
+        void (*printStatFunc)();
+} st_stat_module;
 
+void TERM_RegisterPrintStatCallback(struct stat_module *obj);
 // init platform
 void init (void);
 
@@ -26,4 +32,5 @@ void sigint (void);
 
 void stm32_microrl_insert_char(int ch);
 void TERM_Task(void);
+
 #endif //_STM32_MICRORL_MISC_H_

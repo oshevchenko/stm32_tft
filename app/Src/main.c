@@ -49,6 +49,7 @@
 #include "stm32_microrl_misc.h"
 #include "event_queue.h"
 #include "timer.h"
+#include "speedometer.h"
 #include "pid_regulator.h"
 #include "stm32_dsp.h"
 #include "main_hal.h"
@@ -61,6 +62,7 @@ TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
 TIM_HandleTypeDef htim6;
+TIM_HandleTypeDef htim8;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
@@ -76,6 +78,7 @@ static void MX_TIM6_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_TIM4_Init(void);
+static void MX_TIM8_Init(void);
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
                                 
@@ -92,6 +95,7 @@ typedef enum STATE_MACHINE_TAG {
 } state_machine_e;
 //arm-none-eabi-objcopy -O binary "${BuildArtifactFileBaseName}.elf" "${BuildArtifactFileBaseName}.bin" && arm-none-eabi-size "${BuildArtifactFileName}"
 //arm-none-eabi-objcopy -O ihex "${BuildArtifactFileBaseName}.elf" "${BuildArtifactFileBaseName}.hex"
+static st_stat_module PidStat = {.printStatFunc = PidPrintStat};
 /* USER CODE END 0 */
 
 int main(void)
@@ -123,6 +127,7 @@ int main(void)
   MX_TIM1_Init();
   MX_TIM3_Init();
   MX_TIM4_Init();
+  MX_TIM8_Init();
 
   /* USER CODE BEGIN 2 */
   init();
@@ -134,6 +139,10 @@ int main(void)
   HAL_TIM_Encoder_Start(&htim3,TIM_CHANNEL_ALL);
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_4);
+  HAL_TIM_IC_Start_IT(&htim8, TIM_CHANNEL_1);
+  HAL_TIM_IC_Start_IT(&htim8, TIM_CHANNEL_2);
+//  HAL_TIM_IC_Start(&htim1, TIM_CHANNEL_1 );
+  TERM_RegisterPrintStatCallback(&PidStat);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -142,6 +151,7 @@ int main(void)
   {
 	  TERM_Task();
 	  TIMER_Task();
+	  SPEED_Task();
 //	  enc_x = TIM1->CNT;
 //	  enc_y = TIM3->CNT;
 //
@@ -212,13 +222,14 @@ int main(void)
 			  } else {
 					HAL_GPIO_WritePin(GPIO_USB_DP_GPIO_Port, GPIO_USB_DP_Pin, GPIO_PIN_SET);
 			  }
-			  PidSensors();
 		  	  if (sm == AUTO) {
 				  PidRun(speed_x, speed_y);
-				  HAL_GPIO_TogglePin(GPIO_LED1_GPIO_Port, GPIO_LED1_Pin);
+		  	  } else {
+		  		  PidIdle();
 		  	  }
 			  break;
 		  case CMD_GET_ENC:
+//			  PidPrintStat();
 			  break;
 		  default:
 			  break;
@@ -474,6 +485,72 @@ static void MX_TIM6_Init(void)
 
 }
 
+/* TIM8 init function */
+static void MX_TIM8_Init(void)
+{
+
+  TIM_ClockConfigTypeDef sClockSourceConfig;
+  TIM_SlaveConfigTypeDef sSlaveConfig;
+  TIM_IC_InitTypeDef sConfigIC;
+  TIM_MasterConfigTypeDef sMasterConfig;
+
+  htim8.Instance = TIM8;
+  htim8.Init.Prescaler = 1023;
+  htim8.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim8.Init.Period = 65535;
+  htim8.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim8.Init.RepetitionCounter = 0;
+  if (HAL_TIM_Base_Init(&htim8) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim8, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  if (HAL_TIM_IC_Init(&htim8) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  sSlaveConfig.SlaveMode = TIM_SLAVEMODE_RESET;
+  sSlaveConfig.InputTrigger = TIM_TS_TI1FP1;
+  sSlaveConfig.TriggerPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
+  sSlaveConfig.TriggerPrescaler = TIM_ICPSC_DIV1;
+  sSlaveConfig.TriggerFilter = 0;
+  if (HAL_TIM_SlaveConfigSynchronization(&htim8, &sSlaveConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
+  sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
+  sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
+  sConfigIC.ICFilter = 0;
+  if (HAL_TIM_IC_ConfigChannel(&htim8, &sConfigIC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_FALLING;
+  sConfigIC.ICSelection = TIM_ICSELECTION_INDIRECTTI;
+  if (HAL_TIM_IC_ConfigChannel(&htim8, &sConfigIC, TIM_CHANNEL_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim8, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+}
+
 /** Configure pins as 
         * Analog 
         * Input 
@@ -525,11 +602,58 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+uint16_t TIMER_HAL_GetSpeedometerTime_L()
+{
+	uint16_t time = 0;
+	return time;
+}
+
+uint16_t TIMER_HAL_GetSpeedometerTime_R()
+{
+	int16_t period = 0;
+	int16_t pulse = 0;
+	uint16_t time;
+
+
+	if(__HAL_TIM_GET_FLAG(&htim8, TIM_FLAG_CC1) != RESET)
+	{
+		HAL_GPIO_WritePin(GPIO_LED1_GPIO_Port, GPIO_LED1_Pin, GPIO_PIN_SET);
+		pulse = (int16_t) TIM8->CCR1;
+		time = abs(pulse);
+	} else if (__HAL_TIM_GET_FLAG(&htim8, TIM_FLAG_CC2) != RESET) {
+		HAL_GPIO_WritePin(GPIO_LED1_GPIO_Port, GPIO_LED1_Pin, GPIO_PIN_RESET);
+		period = (int16_t) TIM8->CCR2;
+		pulse = (int16_t) TIM8->CCR1;
+		time = abs(period - pulse);
+	}
+
+	return time;
+}
+
+void TIMER_HAL_EnableIrq_L()
+{
+}
+
+void TIMER_HAL_DisableIrq_L()
+{
+}
+
 uint16_t TIMER_HAL_GetEncoder_X()
 {
 	uint16_t enc_x;
 	enc_x = TIM3->CNT;
 	return enc_x;
+}
+
+void TIMER_HAL_EnableIrq_R()
+{
+	HAL_NVIC_EnableIRQ(TIM8_CC_IRQn);
+}
+
+void TIMER_HAL_DisableIrq_R()
+{
+	HAL_NVIC_DisableIRQ(TIM8_CC_IRQn);
 }
 
 uint16_t TIMER_HAL_GetEncoder_Y()
