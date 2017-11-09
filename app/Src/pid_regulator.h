@@ -24,4 +24,5 @@ void SetPidCoefs_Y(PID_COEFS *pCoefs);
 void PidReset();
 void PidPrintStat();
 void PidIdle();
+void PID_Init();
 #endif

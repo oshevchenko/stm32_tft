@@ -24,7 +24,8 @@ static enum {
 	COMMAND_STAB_ON,
 	COMMAND_STAB_OFF,
 	COMMAND_GET_ENC,
-	COMMAND_UPDATE_COEFFS
+	COMMAND_UPDATE_COEFFS,
+	COMMAND_GET_STAT
 } curr_cmd = COMMAND_EMPTY;
 
 static LIST_HEAD(stat_list);
@@ -77,6 +78,7 @@ void print (const char * str)
 #define _CMD_KP  "kp" //
 #define _CMD_KI  "ki" //
 #define _CMD_KD  "kd" //
+#define _CMD_STAT  "stat" //
 // sub commands for HV command
 #define _SCMD_SWITCH_ON  "on"
 #define _SCMD_SWITCH_OFF "off"
@@ -87,7 +89,7 @@ void print (const char * str)
 
 
 
-#define _NUM_OF_CMD 13
+#define _NUM_OF_CMD 14
 #define _NUM_OF_VER_SCMD 2
 #define _NUM_OF_SWITCH_SCMD 2
 
@@ -332,6 +334,8 @@ int execute (int argc, const char * const * argv)
 			print_statistics();
 			curr_cmd = COMMAND_GET_ENC;
 //			PrintPidStat();
+		} else if (strcmp (argv[i], _CMD_STAT) == 0) {
+			curr_cmd = COMMAND_GET_STAT;
 		} else if (strcmp (argv[i], _CMD_K) == 0) {
 			PrintPidCoefs();
 		} else if (strcmp (argv[i], _CMD_KP) == 0) {
@@ -432,6 +436,9 @@ void TERM_Task(void)
 		break;
 	case COMMAND_GET_ENC:
 		EQ_PutEvent(CMD_GET_ENC);
+		break;
+	case COMMAND_GET_STAT:
+		EQ_PutEvent(CMD_GET_STAT);
 		break;
 	default:
 		break;

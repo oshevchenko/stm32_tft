@@ -53,6 +53,7 @@
 #include "pid_regulator.h"
 #include "stm32_dsp.h"
 #include "main_hal.h"
+#include "logger.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -97,6 +98,8 @@ typedef enum STATE_MACHINE_TAG {
 //arm-none-eabi-objcopy -O ihex "${BuildArtifactFileBaseName}.elf" "${BuildArtifactFileBaseName}.hex"
 static st_stat_module PidStat = {.printStatFunc = PidPrintStat};
 static st_stat_module SpeedStat = {.printStatFunc = SPEED_PrintStat};
+static st_stat_module LoggerStat = {.printStatFunc = LOGGER_PrintData};
+
 /* USER CODE END 0 */
 
 int main(void)
@@ -140,11 +143,16 @@ int main(void)
   HAL_TIM_Encoder_Start(&htim3,TIM_CHANNEL_ALL);
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_4);
-  HAL_TIM_IC_Start(&htim8, TIM_CHANNEL_1);
+  HAL_TIM_IC_Start_IT(&htim8, TIM_CHANNEL_1);
   HAL_TIM_IC_Start_IT(&htim8, TIM_CHANNEL_2);
 //  HAL_TIM_IC_Start(&htim1, TIM_CHANNEL_1 );
   TERM_RegisterPrintStatCallback(&PidStat);
   TERM_RegisterPrintStatCallback(&SpeedStat);
+  TERM_RegisterPrintStatCallback(&LoggerStat);
+  PID_Init();
+  SPEED_Init();
+
+  LOGGER_Trigger();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -154,6 +162,7 @@ int main(void)
 	  TERM_Task();
 	  TIMER_Task();
 	  SPEED_Task();
+
 //	  enc_x = TIM1->CNT;
 //	  enc_y = TIM3->CNT;
 //
@@ -163,7 +172,11 @@ int main(void)
 		  switch(ev.event){
 		  case NO_EVENT:
 			  break;
-		  case CMD_WIDTH:
+		  case CDC_EMPTY:
+			  LOGGER_PrintData();
+			  break;
+
+    	  case CMD_WIDTH:
 		  	  TIMER_StartAuto(1, ev.param.uiParam);
 		  	  break;
 		  case CMD_SPEED:
@@ -197,6 +210,7 @@ int main(void)
 				  speed_x = speed_x_s;
 				  speed_y = speed_y_s;
 			  }
+			  LOGGER_Trigger();
 			  break;
 		  case CMD_STAB_ON:
 			  sm = AUTO;
@@ -230,9 +244,10 @@ int main(void)
 		  	  } else {
 		  		  PidIdle();
 		  	  }
+		  	  LOGGER_GetData();
 			  break;
-		  case CMD_GET_ENC:
-//			  PidPrintStat();
+		  case CMD_GET_STAT:
+			  LOGGER_StartStat();
 			  break;
 		  default:
 			  break;
@@ -493,12 +508,11 @@ static void MX_TIM8_Init(void)
 {
 
   TIM_ClockConfigTypeDef sClockSourceConfig;
-  TIM_SlaveConfigTypeDef sSlaveConfig;
-  TIM_IC_InitTypeDef sConfigIC;
   TIM_MasterConfigTypeDef sMasterConfig;
+  TIM_IC_InitTypeDef sConfigIC;
 
   htim8.Instance = TIM8;
-  htim8.Init.Prescaler = 1023;
+  htim8.Init.Prescaler = 511;
   htim8.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim8.Init.Period = 65535;
   htim8.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -519,12 +533,9 @@ static void MX_TIM8_Init(void)
     Error_Handler();
   }
 
-  sSlaveConfig.SlaveMode = TIM_SLAVEMODE_RESET;
-  sSlaveConfig.InputTrigger = TIM_TS_TI1FP1;
-  sSlaveConfig.TriggerPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
-  sSlaveConfig.TriggerPrescaler = TIM_ICPSC_DIV1;
-  sSlaveConfig.TriggerFilter = 5;
-  if (HAL_TIM_SlaveConfigSynchronization(&htim8, &sSlaveConfig) != HAL_OK)
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim8, &sMasterConfig) != HAL_OK)
   {
     Error_Handler();
   }
@@ -532,22 +543,13 @@ static void MX_TIM8_Init(void)
   sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
   sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
   sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
-  sConfigIC.ICFilter = 5;
+  sConfigIC.ICFilter = 0;
   if (HAL_TIM_IC_ConfigChannel(&htim8, &sConfigIC, TIM_CHANNEL_1) != HAL_OK)
   {
     Error_Handler();
   }
 
-  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_FALLING;
-  sConfigIC.ICSelection = TIM_ICSELECTION_INDIRECTTI;
   if (HAL_TIM_IC_ConfigChannel(&htim8, &sConfigIC, TIM_CHANNEL_2) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  if (HAL_TIMEx_MasterConfigSynchronization(&htim8, &sMasterConfig) != HAL_OK)
   {
     Error_Handler();
   }
@@ -576,6 +578,9 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOE, GPIO_LED1_Pin|GPIO_LED2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIO_OSC_SYNC_GPIO_Port, GPIO_OSC_SYNC_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOD, GPIO_DIR_X_Pin|GPIO_DIR_Y_Pin|GPIO_USB_DP_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : GPIO_LED1_Pin GPIO_LED2_Pin */
@@ -584,11 +589,17 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : GPIO_S2_Pin GPIO_S3_Pin */
-  GPIO_InitStruct.Pin = GPIO_S2_Pin|GPIO_S3_Pin;
+  /*Configure GPIO pin : GPIO_OSC_SYNC_Pin */
+  GPIO_InitStruct.Pin = GPIO_OSC_SYNC_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  HAL_GPIO_Init(GPIO_OSC_SYNC_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : GPIO_S3_Pin */
+  GPIO_InitStruct.Pin = GPIO_S3_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIO_S3_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : GPIO_DIR_X_Pin GPIO_DIR_Y_Pin */
   GPIO_InitStruct.Pin = GPIO_DIR_X_Pin|GPIO_DIR_Y_Pin;
@@ -616,10 +627,29 @@ uint16_t TIMER_HAL_GetSpeedometerTime_R()
 {
 	uint16_t period = 0;
 	uint16_t pulse = 0;
-	uint16_t time;
-	HAL_GPIO_TogglePin(GPIO_LED1_GPIO_Port, GPIO_LED1_Pin);
-    period = HAL_TIM_ReadCapturedValue(&htim8, TIM_CHANNEL_2);
-    pulse = HAL_TIM_ReadCapturedValue(&htim8, TIM_CHANNEL_1);
+	uint16_t tmp;
+	uint16_t cnt;
+	static uint16_t cnt_old_1 = 0;
+	static uint16_t cnt_old_2 = 0;
+	static uint16_t time = 0;
+
+	HAL_GPIO_TogglePin(GPIO_OSC_SYNC_GPIO_Port, GPIO_OSC_SYNC_Pin);
+	if ((RESET != __HAL_TIM_GET_FLAG(&htim8, TIM_FLAG_CC1)) && (RESET == __HAL_TIM_GET_FLAG(&htim8, TIM_FLAG_CC1OF))){
+		cnt = HAL_TIM_ReadCapturedValue(&htim8, TIM_CHANNEL_1);
+		time = cnt - cnt_old_1;
+		cnt_old_1 = cnt;
+	}
+
+	if ((RESET != __HAL_TIM_GET_FLAG(&htim8, TIM_FLAG_CC2)) && (RESET == __HAL_TIM_GET_FLAG(&htim8, TIM_FLAG_CC2OF))){
+		cnt = HAL_TIM_ReadCapturedValue(&htim8, TIM_CHANNEL_2);
+		time = cnt - cnt_old_2;
+		cnt_old_2 = cnt;
+		HAL_GPIO_TogglePin(GPIO_LED1_GPIO_Port, GPIO_LED1_Pin);
+
+	}
+
+//	pulse = HAL_TIM_ReadCapturedValue(&htim8, TIM_CHANNEL_2);
+//    period = HAL_TIM_ReadCapturedValue(&htim8, TIM_CHANNEL_1);
 
 //	if(__HAL_TIM_GET_FLAG(&htim8, TIM_FLAG_CC1) != RESET)
 //	{
@@ -631,7 +661,7 @@ uint16_t TIMER_HAL_GetSpeedometerTime_R()
 //		time = (int16_t) TIM8->CCR2;
 //	}
 
-	return period;
+	return time;
 }
 
 void TIMER_HAL_EnableIrq_L()

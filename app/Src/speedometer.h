@@ -30,6 +30,7 @@ void SPEED_Task(void);
 void SPEED_Timeout(void);
 void SPEED_GetSpeed(int16_t *p_speed_left, int16_t *p_speed_right);
 void SPEED_PrintStat();
+void SPEED_Init();
 #endif //#define __SPEEDOMETER_H__
 /******END OF FILE****/
 

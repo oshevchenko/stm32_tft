@@ -55,8 +55,8 @@
 #define GPIO_LED1_GPIO_Port GPIOE
 #define GPIO_LED2_Pin GPIO_PIN_6
 #define GPIO_LED2_GPIO_Port GPIOE
-#define GPIO_S2_Pin GPIO_PIN_0
-#define GPIO_S2_GPIO_Port GPIOC
+#define GPIO_OSC_SYNC_Pin GPIO_PIN_0
+#define GPIO_OSC_SYNC_GPIO_Port GPIOC
 #define GPIO_S3_Pin GPIO_PIN_1
 #define GPIO_S3_GPIO_Port GPIOC
 #define GPIO_DIR_X_Pin GPIO_PIN_0

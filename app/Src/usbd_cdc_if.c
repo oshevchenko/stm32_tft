@@ -45,6 +45,7 @@
 #include "usbd_cdc_if.h"
 /* USER CODE BEGIN INCLUDE */
 #include "stm32_microrl_misc.h"
+#include "event_queue.h"
 /* USER CODE END INCLUDE */
 
 /** @addtogroup STM32_USB_OTG_DEVICE_LIBRARY
@@ -311,6 +312,7 @@ void CDC_Task() {
 
     if (UserTxBufPtrOut == UserTxBufPtrIn && !UserTxNeedEmptyPacket) {
         // No outstanding data to send
+    	EQ_PutEvent(CDC_EMPTY);
         return;
     }
 

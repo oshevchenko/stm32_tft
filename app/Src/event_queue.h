@@ -11,7 +11,9 @@ typedef enum QUEUE_EVENT_TAG {
 	CMD_STAB_OFF,
 	CMD_GET_ENC,
 	SPEED_LEFT,
-	SPEED_RIGHT
+	SPEED_RIGHT,
+	CDC_EMPTY,
+	CMD_GET_STAT
 } eq_queue_event_e;
 
 typedef union QUEUE_PARAM_TAG {
