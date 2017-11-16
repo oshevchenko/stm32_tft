@@ -27,7 +27,7 @@ void TIMER_Task(void);
 void TIMER_Start(uint8_t num, uint32_t delay);
 void TIMER_StartAuto(uint8_t num, uint32_t delay);
 void TIMER_Stop(uint8_t num);
-
+void TIMER_PrintStat(char* str, int max_len);
 #endif //#define __TIMER_H__
 /******END OF FILE****/
 

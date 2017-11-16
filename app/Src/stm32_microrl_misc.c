@@ -11,6 +11,8 @@
 #include "stm32_dsp.h"
 #include "pid_regulator.h"
 #include "list.h"
+#include "logger.h"
+#include "version.h"
 
 extern void USBD_CDC_TxAlways(const uint8_t *buf, uint32_t len);
 static microrl_t rl;
@@ -28,7 +30,7 @@ static enum {
 	COMMAND_GET_STAT
 } curr_cmd = COMMAND_EMPTY;
 
-static LIST_HEAD(stat_list);
+
 //*****************************************************************************
 //dummy function, no need on linux-PC
 void init (void){
@@ -108,20 +110,32 @@ char name [_NAME_LEN];
 int val;
 
 
-
+#define VERSION_BUF_SIZE 100
 //*****************************************************************************
+void TERM_PrintVersion()
+{
+	char cmd_buf[VERSION_BUF_SIZE] = {'\0',};
+
+	snprintf (cmd_buf, VERSION_BUF_SIZE, "-- Version: %5d.%02d                            --\n\r",
+			VERSION_HIGH, VERSION_LOW);
+	print ("--------------------------------------------------\n\r");
+	print ("-- Simultaneous localization and mapping (SLAM) --\n\r");
+	print ("--            Proof-of-Concept project          --\n\r");
+	print ("--------------------------------------------------\n\r");
+	print (cmd_buf);
+	print ("--------------------------------------------------\n\r");
+
+}
+
 void print_help ()
 {
-	print ("--------------------------------------\n\r");
-	print ("-- Traffic Signs Recognition (TSR)  --\n\r");
-	print ("--     Proof-of-Concept project     --\n\r");
-	print ("--------------------------------------\n\r");
+	TERM_PrintVersion();
 	print ("Use TAB key for completion\n\rCommand:\n\r");
 	print ("\tversion {microrl | demo} - print version of microrl lib or version of this demo src\n\r");
 	print ("\thelp  - this message\n\r");
 	print ("\tclear - clear screen\n\r");
 	print ("\tlist  - list all commands in tree\n\r");
-	print ("\tname [string] - print 'name' value if no 'string', set name value to 'string' if 'string' present\n\r");
+	print ("\tstat - get PID response graph after speed L R command\n\r");
 	print ("\tstab { on | off } - enable | disable motor speed PID regulator\n\r");
 	print ("\tspeed {left right} - set motor speed.\n\r");
 	print ("\tenc - get encoder statistics\n\r");
@@ -157,13 +171,6 @@ void PrintPidStat()
 	print (cmd_buf);
 }
 
-void print_statistics()
-{
-	struct stat_module *i = NULL;
-	list_for_each_entry(i, &stat_list, list) {
-		i->printStatFunc();
-	}
-}
 
 void SetKp_X(uint16_t param)
 {
@@ -331,7 +338,7 @@ int execute (int argc, const char * const * argv)
 				print (STR_NEED_MORE_PARAMETERS);
 			}
 		} else if (strcmp (argv[i], _CMD_ENC) == 0) {
-			print_statistics();
+			LOGGER_PrintStatistics();
 			curr_cmd = COMMAND_GET_ENC;
 //			PrintPidStat();
 		} else if (strcmp (argv[i], _CMD_STAT) == 0) {
@@ -408,10 +415,6 @@ void sigint (void)
 	print ("^C catched!\n\r");
 }
 
-void TERM_RegisterPrintStatCallback(struct stat_module *obj)
-{
-	list_add(&obj->list, &stat_list);
-}
 
 void TERM_Task(void)
 {

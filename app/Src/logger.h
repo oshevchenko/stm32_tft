@@ -24,5 +24,13 @@ void LOGGER_PrintData();
 void LOGGER_GetData();
 void LOGGER_Task();
 void LOGGER_StartStat();
+void LOGGER_PrintStatistics();
+typedef struct stat_module
+{
+        struct list_head list;
+        void (*printStatFunc)(char*, int);
+} st_stat_module;
+
+void LOGGER_RegisterPrintStatCallback(struct stat_module *obj);
 
 #endif

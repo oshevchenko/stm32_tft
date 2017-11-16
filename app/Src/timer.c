@@ -15,6 +15,16 @@
 #define TIMER_IRQn TIM6_IRQn
 static tm_sm_s timer1;
 static tm_sm_s timer2;
+static uint32_t m_time = 0;
+
+void TIMER_PrintStat(char* str, int max_len)
+{
+	uint32_t time;
+	HAL_NVIC_DisableIRQ(TIMER_IRQn);
+	time = m_time;
+	HAL_NVIC_EnableIRQ(TIMER_IRQn);
+	snprintf (str, max_len, "%05d", time);
+}
 
 tm_sm_s* getTimerByNumber(uint8_t num)
 {
@@ -36,6 +46,7 @@ tm_sm_s* getTimerByNumber(uint8_t num)
 //Should be called from HW timer interrupt
 void TIMER_Tick(void)
 {
+	m_time++;
 	if (RUNNING == timer1.state){
 		if (timer1.counter) timer1.counter--;
 		if (0 == timer1.counter) timer1.state = EXPIRED;

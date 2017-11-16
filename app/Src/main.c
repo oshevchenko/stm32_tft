@@ -94,11 +94,19 @@ typedef enum STATE_MACHINE_TAG {
 	MANUAL = 0,
 	AUTO
 } state_machine_e;
+
+typedef enum START_STATE_MACHINE_TAG {
+	START_INIT_DELAY = 0,
+	START_USB_CONNECT_DELAY,
+	START_USB_DONE
+} start_state_machine_e;
 //arm-none-eabi-objcopy -O binary "${BuildArtifactFileBaseName}.elf" "${BuildArtifactFileBaseName}.bin" && arm-none-eabi-size "${BuildArtifactFileName}"
 //arm-none-eabi-objcopy -O ihex "${BuildArtifactFileBaseName}.elf" "${BuildArtifactFileBaseName}.hex"
 static st_stat_module PidStat = {.printStatFunc = PidPrintStat};
 static st_stat_module SpeedStat = {.printStatFunc = SPEED_PrintStat};
-static st_stat_module LoggerStat = {.printStatFunc = LOGGER_PrintData};
+static st_stat_module TimerStat = {.printStatFunc = TIMER_PrintStat};
+
+
 
 /* USER CODE END 0 */
 
@@ -109,6 +117,7 @@ int main(void)
 	eq_queue_element_s ev;
 	PID_OUT pid_out;
 	state_machine_e sm = MANUAL;
+	start_state_machine_e start_sm = START_INIT_DELAY;
 	int16_t speed_x;
 	int16_t speed_y;
 	int8_t speed_x_s, speed_y_s;
@@ -139,20 +148,24 @@ int main(void)
   HAL_GPIO_WritePin(GPIO_LED1_GPIO_Port, GPIO_LED1_Pin, GPIO_PIN_SET);
   HAL_GPIO_WritePin(GPIO_LED2_GPIO_Port, GPIO_LED2_Pin, GPIO_PIN_SET);
   TIMER_StartAuto(1, 75);
+  TIMER_Start(2, 1000);
+  start_sm = START_INIT_DELAY;
   HAL_TIM_Encoder_Start(&htim1,TIM_CHANNEL_ALL);
   HAL_TIM_Encoder_Start(&htim3,TIM_CHANNEL_ALL);
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_4);
   HAL_TIM_IC_Start_IT(&htim8, TIM_CHANNEL_1);
   HAL_TIM_IC_Start_IT(&htim8, TIM_CHANNEL_2);
-//  HAL_TIM_IC_Start(&htim1, TIM_CHANNEL_1 );
-  TERM_RegisterPrintStatCallback(&PidStat);
-  TERM_RegisterPrintStatCallback(&SpeedStat);
-  TERM_RegisterPrintStatCallback(&LoggerStat);
+
+  LOGGER_RegisterPrintStatCallback(&PidStat);
+  LOGGER_RegisterPrintStatCallback(&SpeedStat);
+  LOGGER_RegisterPrintStatCallback(&TimerStat);
+
   PID_Init();
   SPEED_Init();
 
   LOGGER_Trigger();
+//  TERM_PrintVersion();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -162,11 +175,6 @@ int main(void)
 	  TERM_Task();
 	  TIMER_Task();
 	  SPEED_Task();
-
-//	  enc_x = TIM1->CNT;
-//	  enc_y = TIM3->CNT;
-//
-//	  SetEnc(enc_x, enc_y);
 	  do {
 		  EQ_GetEvent(&ev);
 		  switch(ev.event){
@@ -217,9 +225,6 @@ int main(void)
 			  PidReset();
 			  speed_x = 0;
 			  speed_y = 0;
-//			  HAL_GPIO_WritePin(GPIO_LED2_GPIO_Port, GPIO_LED2_Pin, GPIO_PIN_RESET);
-//              TIM4->CCR3=65535;
-//              TIM4->CCR4=65535;
 			  break;
 		  case CMD_STAB_OFF:
 			  sm = MANUAL;
@@ -227,18 +232,20 @@ int main(void)
 			  pid_out.Dir = 0;
 			  TIMER_HAL_SetMotor_X(&pid_out);
 			  TIMER_HAL_SetMotor_Y(&pid_out);
-
-//			  HAL_GPIO_WritePin(GPIO_LED2_GPIO_Port, GPIO_LED2_Pin, GPIO_PIN_SET);
-//              TIM4->CCR3=5;
-//              TIM4->CCR4=5;
 			  break;
+		  case TIMER2_EXPIRED:
+			  if (START_INIT_DELAY == start_sm) {
+				  TIMER_Start(2, 3000);
+				  start_sm = START_USB_CONNECT_DELAY;
+				  HAL_GPIO_WritePin(GPIO_USB_DP_GPIO_Port, GPIO_USB_DP_Pin, GPIO_PIN_SET);
+			  } else if (START_USB_CONNECT_DELAY == start_sm) {
+				  TERM_PrintVersion();
+				  start_sm = START_USB_DONE;
+			  }
+			  break;
+
 		  case TIMER1_EXPIRED:
 			  SPEED_Timeout();
-			  if (cnt < 20) {
-				  cnt++;
-			  } else {
-					HAL_GPIO_WritePin(GPIO_USB_DP_GPIO_Port, GPIO_USB_DP_Pin, GPIO_PIN_SET);
-			  }
 		  	  if (sm == AUTO) {
 				  PidRun(speed_x, speed_y);
 		  	  } else {

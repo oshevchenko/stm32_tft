@@ -16,6 +16,10 @@ static int16_t speed_y_m;
 
 static PID_COEFS pid_coefs_x = {.Int = 0, .PrevError = 0, .Kp = 300, .Ki = 50, .Kd = 100};
 static PID_COEFS pid_coefs_y = {.Int = 0, .PrevError = 0, .Kp = 300, .Ki = 50, .Kd = 100};
+static int16_t i_pid_out_r;
+static int16_t i_pid_out_l;
+static int16_t speed_x_e;
+static int16_t speed_y_e;
 
 
 void GetPidCoefs_X(PID_COEFS *pCoefs)
@@ -46,24 +50,11 @@ void GetPidStat(PID_REG_STAT *pStat)
 	pStat->speed_y = speed_y_m;
 }
 
-#define PID_STAT_LEN 50
-void PidPrintStat()
-{
-	uint16_t encoder_l;
-	uint16_t encoder_r;
-	PID_REG_STAT PidStat;
-	char cmd_buf[PID_STAT_LEN];
-	GetPidStat(&PidStat);
-	snprintf (cmd_buf, PID_STAT_LEN, "L=%05d R=%05d SL=%05d SR=%05d\n\r",
-									  PidStat.enc_x, PidStat.enc_y,
-									  PidStat.speed_x, PidStat.speed_y);
-	print (cmd_buf);
-	encoder_l = TIMER_HAL_GetEncoder_X();
-	encoder_r = TIMER_HAL_GetEncoder_Y();
 
-	snprintf (cmd_buf, PID_STAT_LEN, "enc_l=%05d enc_r=%05d\n\r",
-			encoder_l, encoder_r);
-	print (cmd_buf);
+void PidPrintStat(char *str, int max_len)
+{
+	snprintf (str, max_len, "%d %d %d %d",
+			i_pid_out_l, i_pid_out_r, speed_x_e, speed_y_e);
 }
 
 #define DEBUG_BUF_LEN 50
@@ -90,19 +81,16 @@ void PidIdle()
 {
 	SPEED_GetSpeed(&speed_x_m, &speed_y_m);
 }
-static int16_t i_pid_out_r;
+
 void PidRun(int16_t speed_x_s, int16_t speed_y_s)
 {
 //	char cmd_buf[DEBUG_BUF_LEN] = {0,};
 	PID_OUT pid_out;
-	int16_t speed_x_e = 0;
-	int16_t speed_y_e = 0;
-	int16_t i_pid_out;
 
 	SPEED_GetSpeed(&speed_x_m, &speed_y_m);
 	speed_x_e = speed_x_s - speed_x_m;
 	//	Kp=300 Ki=20 Kd=100
-	DoPID(speed_x_e, &pid_coefs_x, &i_pid_out);
+	DoPID(speed_x_e, &pid_coefs_x, &i_pid_out_l);
 
 
 //	if (i_pid_out < 0) {
@@ -115,7 +103,7 @@ void PidRun(int16_t speed_x_s, int16_t speed_y_s)
 //	pid_out.Out <<= 1;
 //	if (pid_out.Out > 60000) pid_out.Out = 60000;
 //	pid_out.Out += 5000;
-	pid_output_correction(i_pid_out, &pid_out);
+	pid_output_correction(i_pid_out_l, &pid_out);
     TIMER_HAL_SetMotor_X(&pid_out);
 
 	speed_y_e = speed_y_s - speed_y_m;

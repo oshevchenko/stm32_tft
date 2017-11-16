@@ -9,6 +9,30 @@
 static struct list_head list_array_log_data[LOGGER_ARRAY_SIZE];
 static int m_current = 0;
 static LIST_HEAD(logger_module_list);
+static LIST_HEAD(stat_list);
+
+void LOGGER_PrintStatistics()
+{
+	char str_mod[LOGGER_MAX_STR_LEN] = {'\0',};
+	char str[LOGGER_MAX_STR_LEN] = {'\0',};
+	char str_head[] = "M";
+	st_stat_module *i;
+
+	strncat(str, str_head, LOGGER_MAX_STR_LEN);
+	list_for_each_entry(i, &stat_list, list) {
+		i->printStatFunc(str_mod, LOGGER_MAX_STR_LEN);
+		strncat(str, " ", LOGGER_MAX_STR_LEN);
+		strncat(str, str_mod, LOGGER_MAX_STR_LEN);
+	}
+	print(str);
+	print("\r\n");
+}
+
+void LOGGER_RegisterPrintStatCallback(struct stat_module *obj)
+{
+	list_add(&obj->list, &stat_list);
+}
+
 
 void LOGGER_Trigger()
 {

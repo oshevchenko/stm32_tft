@@ -28,11 +28,13 @@ static uint16_t speed_max;
 static uint16_t pulse_raw;
 static speed_sm_s speed_meter_right = {.state = SPEED_IDLE,
                                        .speed = 0,
+                                       .encoder = 0,
                                        .old_encoder = 0,
                                        .timeout_counter = 0
                                       };
 static speed_sm_s speed_meter_left  = {.state = SPEED_IDLE,
                                        .speed = 0,
+                                       .encoder = 0,
                                        .old_encoder = 0,
                                        .timeout_counter = 0
                                       };
@@ -150,8 +152,10 @@ void SPEED_GetSpeed(int16_t *p_speed_left, int16_t *p_speed_right)
 {
 	uint16_t encoder;
 	encoder = TIMER_HAL_GetEncoder_Y();
-	speed_meter_right.delta  = (int16_t)encoder - (int16_t)speed_meter_right.old_encoder;
-	speed_meter_right.old_encoder = encoder;
+	speed_meter_right.delta  = (int16_t)encoder - (int16_t)speed_meter_right.encoder;
+	//This is for statistics
+	speed_meter_right.old_encoder = speed_meter_right.encoder;
+	speed_meter_right.encoder = encoder;
 	*p_speed_right = speed_meter_right.delta;
 
 	if (speed_right > speed_max) speed_max = speed_right;
@@ -163,8 +167,10 @@ void SPEED_GetSpeed(int16_t *p_speed_left, int16_t *p_speed_right)
 //	}
 
 	encoder = TIMER_HAL_GetEncoder_X();
-	speed_meter_left.delta  = (int16_t)encoder - (int16_t)speed_meter_left.old_encoder;
-	speed_meter_left.old_encoder = encoder;
+	speed_meter_left.delta  = (int16_t)encoder - (int16_t)speed_meter_left.encoder;
+	//This is for statistics
+	speed_meter_left.old_encoder = speed_meter_left.encoder;
+	speed_meter_left.encoder = encoder;
 	*p_speed_left = speed_meter_left.delta;
 
 //	if (speed_meter_left.delta < 0) {
@@ -219,13 +225,11 @@ void SPEED_Init()
 	LOGGER_RegisterModule(&speed_log_module);
 }
 
-#define SPEED_STAT_LEN 50
-void SPEED_PrintStat()
+
+void SPEED_PrintStat(char* str, int max_len)
 {
-	char cmd_buf[SPEED_STAT_LEN];
-	snprintf (cmd_buf, SPEED_STAT_LEN, "speed_right_max=%05d d=%d speed_max=%d %d\n\r", speed_right_max, speed_meter_right.delta, speed_max, pulse_raw);
+	snprintf (str, max_len, "%05d %05d 0 0 %05d %05d 0 0", speed_meter_left.encoder, speed_meter_left.old_encoder, speed_meter_right.encoder, speed_meter_right.old_encoder);
 	speed_max = 0;
-	print (cmd_buf);
 }
 
 /******END OF FILE****/

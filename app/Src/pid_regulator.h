@@ -22,7 +22,7 @@ void GetPidCoefs_Y(PID_COEFS *pCoefs);
 void SetPidCoefs_X(PID_COEFS *pCoefs);
 void SetPidCoefs_Y(PID_COEFS *pCoefs);
 void PidReset();
-void PidPrintStat();
+void PidPrintStat(char *str, int max_len);
 void PidIdle();
 void PID_Init();
 #endif
